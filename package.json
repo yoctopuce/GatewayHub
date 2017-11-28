@@ -1,0 +1,12 @@
+{
+  "name": "gatewayhub",
+  "author": "Yoctopuce",
+  "description": "Yoctopuce GatewayHub",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "express-ws": "^3.0.0",
+    "pug": "^2.0.0-rc.4",
+    "yoctolib-es2017": "^1.10.29281"
+  }
+}

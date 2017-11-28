@@ -1,0 +1,120 @@
+doctype html
+head
+  style.
+    table.border    { border-collapse:collapse; }
+    table.border th { border: 1px solid black; padding: 4px 0 4px 0; background-color: #eee; }
+    table.border td { border: 1px solid black; padding: 4px 0 4px 0; }
+    a.button { display:inline-block;text-decoration:none;color:black;padding:1px 4px 2px 4px;border:1px solid gray;border-radius:4px;background:#eee; font-size:12px; }
+body(style='font-family:sans-serif;')
+  //- Login form
+  form(method='POST' name='loginForm' action='/')
+    p(style='text-align:center;') <br>
+      input(name='action' style='display:none')
+      span(id='loginPanel' style='display:inline-block;width:350px;height:160px;padding:0 30px 0 30px;border:1px solid gray;border-radius:4px;background:#eee;')
+      br
+      span(id='release' style='display:inline-block;width:410px;text-align:right;font-size:9px;')
+        include version.pug
+  script.
+    function formInput(name) { return window.document.forms["loginForm"][name]; }
+    function formSubmit() { window.document.forms["loginForm"].submit();return false; }
+    function hookSubmit(evt) {
+      evt = evt || window.event;
+      var charCode = evt.which || evt.keyCode;
+      if(charCode == 13) { formSubmit(); return false; }
+      return true;
+    }
+    window.document.getElementById('loginPanel').innerHTML =
+      "<p style='text-align:center;'><b id='loginTitle'>Login Required</b></p><table>" +
+      "<tr><td>Username :&nbsp;</td><td><input name='username' onkeypress='return hookSubmit(event);'></td></tr>" +
+      "<tr><td>Password :&nbsp;</td><td><input name='userpass' onkeypress='return hookSubmit(event);' type='password'></td></tr>" +
+      "</table><p style='text-align:right;' id='loginButton'>" +
+      "<a class='button' style='font-size:16px;' href='#' onclick='formSubmit()'>Login</a>";
+  script
+    | formInput('username').value = '#{FORM.username}';
+    | formInput('userpass').value = '#{FORM.userpass}';
+    | formInput('username').focus();
+
+  //- First login (no subdomain defined yet)
+  if YSubdomain.IsFirstLogin()
+    script.
+      document.getElementById('loginTitle').innerHTML = 'Setup "administrator" credentials';
+      document.getElementById('loginButton').style.display = 'none';
+  //- Available subdomain list
+  div(style='text-align:center;')
+    if YSubdomain.IsAdmin(FORM.username, FORM.userpass)
+      span(style='display:inline-block;')
+        p(style='text-align:justify;width:600px;')
+          | A subdomain is a jonction point between a YoctoHub or VirtualHub running a WebSocket callback,
+          | and a Web console or other Yoctopuce API application that requires interactive access to this hub.
+    if YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass).length > 0
+      include connect.pug
+      script.
+        function openSubdomain(name)
+        {
+          window.document.forms["loginForm"].action = name+'/';
+          formSubmit();
+          return false;
+        }
+        window.SubdomainReloadTimeout = setTimeout(formSubmit,5000);
+      h3 Subdomains available for #{FORM.username}
+      span(style='display:inline-block;')
+        table(style='width:600px;' class='border')
+          tr
+            th Subdomain
+            th Remote hub
+            th API client
+            th details
+          each domname in YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass)
+            tr
+              - var subdom = YSubdomain.GetSubdomain(domname);
+              td <b>#{domname}</b>
+              td #{subdom.netname}
+              if !subdom.yapi
+                td (hub offline)
+              else if !subdom.client
+                td
+                  a(href='#' class='button' onclick="connectToSubdomain('"+domname+"');") connect
+              else
+                td subdom.client
+              td
+                a(href='#' class='button' onclick="openSubdomain('"+domname+"');") open
+    if YSubdomain.IsAdmin(FORM.username, FORM.userpass)
+      script.
+        function prepAddSubdomain()
+        {
+          if(window.SubdomainReloadTimeout) {
+            clearTimeout(window.SubdomainReloadTimeout);
+            delete window.SubdomainReloadTimeout;
+          }
+          document.getElementById('addButton').style.display = 'none';
+          document.getElementById('addFields').style.display = '';
+          return false;
+        }
+        function addSubdomain()
+        {
+          formInput('action').value = '+'+document.getElementById('addname').value+'|'+document.getElementById('addpass').value
+          formSubmit();
+          return false;
+        }
+      br
+      span(style='display:inline-block;')
+        table(style='width:600px;' class='border')
+          tr
+            td(colspan=2 style='border:0;text-align:right;padding-top:10px;')
+              a#addButton(href='#' class='button' onclick="prepAddSubdomain();") add subdomain
+          tr#addFields(style='display:none;')
+            td(style='border:0; vertical-align:top; padding-top: 8px;') New subdomain:
+            td(style='border:0;' colspan=3)
+              table(style='width:100%;border-collapse:collapse;')
+                tr
+                  td(style='border:0; text-align:left;') Subdomain name:
+                  td(style='border:0; text-align:left;')
+                    input(id='addname' size=30)
+                tr
+                  td(style='border:0; text-align:left;') Hub secret key:
+                  td(style='border:0; text-align:left;')
+                    input(id='addpass' size=30 type='password')
+                tr
+                  td(style='border:0;') &nbsp;
+                  td(style='border:0; text-align:right;')
+                    a(href='#' onclick="addSubdomain();" class="button") create

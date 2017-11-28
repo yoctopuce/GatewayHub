@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<HTML><HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<SCRIPT>
+"use strict";
+
+var rootwin = window;
+while (rootwin != rootwin.parent) {
+  rootwin = rootwin.parent;
+}
+function jsHTTP(str_key) {
+  return window._GET[str_key];
+}
+rootwin.initSubWindow(window);
+</SCRIPT>
+</HEAD>
+<BODY onload="loadPage(window,_GET.url);"></BODY>
+</HTML>

@@ -1,0 +1,127 @@
+doctype html
+head
+  title #{subdom.name} Gateway Hub
+head
+  style.
+    table th { border: 0; text-align: left; background-color: #eee; }
+    table td { border: 0; text-align: left; }
+    a.button { display:inline-block;text-decoration:none;color:black;padding:1px 4px 2px 4px;border:1px solid gray;border-radius:4px;background:#eee; font-size:12px; }
+body(style='font-family:sans-serif;text-align:center;')
+  div(style="position:absolute;top:0px;left:10px;height:100px;width:1024px;overflow:hidden;z-index:-1;")
+    img(src="/banner.png")
+  form(method='POST' name='loginForm' style='display:none;')
+    input(name='action')
+    input(name='username' value=FORM.username)
+    input(name='userpass' value=FORM.userpass)
+  script.
+    function wdg(id) { return document.getElementById(id); }
+    function formInput(name) { return window.document.forms["loginForm"][name]; }
+    function formSubmit() { window.document.forms["loginForm"].submit();return false; }
+    function removeUserFromSubdomain(username)
+    {
+        formInput('action').value = '-'+username;
+        formSubmit();
+    }
+    function changeSubdomainCallbackPwd()
+    {
+        if(wdg('cbpass').type == 'password') {
+            wdg('cbpassBtn').innerHTML = 'save';
+            wdg('cbpass').type = 'text';
+        } else {
+            formInput('action').value = '#'+wdg('cbpass').value;
+            formSubmit();
+        }
+    }
+    function prepAddUserToSubdomain()
+    {
+        wdg('prepAdd').style.display = 'none';
+        wdg('addFields').style.display = '';
+    }
+    function addUserToSubdomain()
+    {
+        formInput('action').value = '+'+wdg('adduser').value+'|'+wdg('addpass').value+'|'+(wdg('addadmin').checked?'1':'0');
+        formSubmit();
+    }
+  include connect.pug
+  h2(style='color:#555;font-variant: small-caps;') #{subdom.name} Subdomain
+  div(style="height:40px")
+  span(style='display:inline-block;')
+    table(style='width:550px;')
+      tr
+        td Hub network name:
+        td #{subdom.netname}
+      tr
+        td Hub status:
+        if !subdom.yapi
+          td (hub offline)
+        else if !subdom.client
+          td online
+          td(style='text-align:right;')
+            a(href='#' onclick="connectToSubdomain('"+subdom.name+"');" class="button") connect
+        else
+          td connected to #{subdom.client}
+      tr
+        td(style='vertical-align:top;') Devices:
+        td(colspan=2)
+          table
+            each dev in subdom.devs
+              tr
+                td #{dev.serialNumber}
+                td : #{dev.productName}
+                td #{dev.logicalName}
+      if subdom.isAuthorized(FORM.username,FORM.userpass) > 1
+        tr
+          td(colspan=3) <hr>
+        tr
+          td Hub callback password:
+          td
+            input#cbpass(type='password' size=30 value=subdom.pass)
+          td(style='text-align:right;')
+            a#cbpassBtn(href='#' onclick="changeSubdomainCallbackPwd();" class="button") view/edit
+        tr
+          td(style='vertical-align:top;') Authorized API users:<br>
+            a#prepAdd(href='#' onclick="prepAddUserToSubdomain();" class="button") add
+          td(style='vertical-align:top;' colspan=2)
+            table(style='width:100%;')
+              each user in subdom.auth
+                tr
+                  td #{user.user}
+                  td #{user.admin ? '(admin)' : ''}
+                  if user.user != FORM.username
+                    td(style='text-align:right;')
+                      a(href='#' onclick="removeUserFromSubdomain('"+user.user+"');" class="button") remove
+        tr#addFields(style='display:none;')
+          td(style='vertical-align:top;') New user:
+          td(colspan=2)
+            table(style='width:100%;')
+              tr
+                td Username:
+                td
+                  input(id='adduser')
+              tr
+                td Password:
+                td
+                  input(id='addpass' type='password')
+              tr
+                td
+                  input#addadmin(type='checkbox')
+                  | admin
+                td(style='text-align:right;')
+                  a(href='#' onclick="addUserToSubdomain();" class="button") add user
+      tr
+        td(colspan=3) <hr>
+      tr
+        td(colspan=3) Websocket callback logs:<br>
+          textarea(cols=100,rows=10)
+            each line in subdom.hublog
+              | #{line+'\n'}
+      tr
+        td(colspan=3) API connection logs:<br>
+          textarea(cols=100,rows=10)
+            each line in subdom.apilog
+              | #{line + '\n'}
+      tr
+        td(colspan=2)
+          a(href='..' class="button") logout
+        td(style='text-align:right;')
+          a(href='#' onclick="formSubmit();" class="button") refresh

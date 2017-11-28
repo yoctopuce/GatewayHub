@@ -1,0 +1,38 @@
+script
+    | Server = '#{Server}';
+    | webapp_size = #{YSubdomain.WebAppSize};
+script.
+    function connectToSubdomain(name)
+    {
+        if(window.SubdomainReloadTimeout) {
+            clearTimeout(window.SubdomainReloadTimeout);
+            delete window.SubdomainReloadTimeout;
+        }
+        let yuser = formInput('username').value;
+        let ypass = formInput('userpass').value;
+        let huburl = 'wss://'+yuser+':'+ypass+'@'+Server+'/'+name+'/';
+        window.document.body.innerHTML = "<p style='text-align:center;font-family: sans-serif;'><br><br><br>Loading web interface...<br>" + "<span id='container' style='display:inline-block;width:300px;height:20px'></span></p>";
+        window.document.getElementById('container').innerHTML = "<div style='top:3px;left:5px;width:300px;height:12px;overflow:hidden;border:1px solid gray;border-radius:3px;background:#eee;'>" + "<div id='progress' style='left:0;top:0;width:0;height:16px;border:0 solid #000;overflow:hidden;background:#444;'>" + "</div></div>";
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/'+name+'/webapp.html', true, '', '');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState >= 3) {
+                if (xhr.readyState == 4 && xhr.status != 200 && xhr.status != 304) {
+                    console.log('Load error...');
+                } else {
+                    var len = xhr.responseText.length;
+                    window.document.getElementById('progress').style.width = parseInt(300 * len / webapp_size) + 'px';
+                    if (xhr.readyState == 4) {
+                        let patched = xhr.responseText.replace('parseQuery(window.location.search, "main.html")','{ "url":"main.html","hub":"'+huburl+'" }');
+                        window.document.open();
+                        window.document.write(patched);
+                        window.document.close();
+                        //window.location.assign('webapp.html');
+                    }
+                }
+            }
+        };
+        setTimeout(function () {
+            xhr.send('');
+        }, 300);
+    }
