@@ -17,12 +17,12 @@ script.
         xhr.open('GET', '/'+name+'/webapp.html', true, '', '');
         xhr.onreadystatechange = function () {
             if (xhr.readyState >= 3) {
-                if (xhr.readyState == 4 && xhr.status != 200 && xhr.status != 304) {
+                if (xhr.readyState === 4 && xhr.status !== 200 && xhr.status !== 304) {
                     console.log('Load error...');
                 } else {
                     var len = xhr.responseText.length;
                     window.document.getElementById('progress').style.width = parseInt(300 * len / webapp_size) + 'px';
-                    if (xhr.readyState == 4) {
+                    if (xhr.readyState === 4) {
                         let patched = xhr.responseText.replace('parseQuery(window.location.search, "main.html")','{ "url":"main.html","hub":"'+huburl+'" }');
                         window.document.open();
                         window.document.write(patched);

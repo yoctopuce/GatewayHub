@@ -1,0 +1,9 @@
+doctype html
+head
+  title Callback test
+body(style='font-family:courier;font-size:10px;text-align:left;')
+  each line in lines
+    | #{line}<br>
+  if autoRefresh
+    script.
+      setTimeout("location.reload();",2000);

@@ -1,1 +1,5 @@
-- test
+- Complete MQTT client support
+- Misc cleanup
+- Add README.md file
+- Add support for Yocto-API uploads
+- Fix race condition when handling yocto-api callback commands

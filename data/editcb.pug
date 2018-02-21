@@ -1,0 +1,854 @@
+doctype html
+head
+  title Outgoing Callback configuration
+  style.
+    table th { border: 0; text-align: left; background-color: #eee; }
+    table td { border: 0; text-align: left; }
+    a.button { display:inline-block;text-decoration:none;color:black;padding:1px 4px 2px 4px;border:1px solid gray;border-radius:4px;background:#eee; font-size:12px; }
+body(style='font-family:sans-serif;text-align:center;')
+  div(style="position:absolute;top:0px;left:10px;height:100px;width:1024px;overflow:hidden;z-index:-1;")
+    img(src="/banner.png")
+  form(method='POST' name='loginForm' style='display:none;')
+    input(name='action')
+    input(name='username' value=FORM.username)
+    input(name='userpass' value=FORM.userpass)
+    textarea(name='json')
+  script.
+    window.CbMethods = ['POST', 'GET', 'PUT'];
+    window.CbEncodings = ['WWW-Form', 'JSON-Object', 'CSV', 'Yocto-API', 'JSON-Num', 'EMONCMS', 'INFLUXDB', 'MQTT'];
+    var cbParams = {
+      Method: '#{cbdata.Method}',
+      Encoding: '#{cbdata.Encoding}',
+      Url: '#{cbdata.Url}',
+      Credentials: { user: '#{cbdata.Credentials.user}', pass: '#{cbdata.Credentials.pass}' },
+      Schedule: {
+          minPeriod: #{cbdata.Schedule.minPeriod},
+          minMinutes: #{cbdata.Schedule.minMinutes},
+          minHours: #{cbdata.Schedule.minHours},
+          maxPeriod: #{cbdata.Schedule.maxPeriod},
+          maxMinutes: #{cbdata.Schedule.maxMinutes},
+          maxHours: #{cbdata.Schedule.maxHours},
+          maxOffset: #{cbdata.Schedule.maxOffset},
+          alignPeriod: #{cbdata.Schedule.alignPeriod},
+          paused: #{cbdata.Schedule.paused}
+      }
+    };
+    var org_cbParams = JSON.parse(JSON.stringify(cbParams));
+
+    function wdg(id) { return document.getElementById(id); }
+    function formInput(name) { return window.document.forms["loginForm"][name]; }
+    function formSubmit(action)
+    {
+      if(action) window.document.forms["loginForm"].action = action;
+      window.document.forms["loginForm"].submit();
+      return false;
+    }
+
+    function deleteCallback()
+    {
+      formInput('action').value = 'Cb-#{cbdata.idx}';
+      formSubmit('.');
+    }
+
+    function saveCallbackParams()
+    {
+      formInput('action').value = 'Cb+#{cbdata.idx}';
+      formInput('json').innerHTML = JSON.stringify(cbParams);
+      formSubmit('.');
+    }
+
+    function revertCallbackParams()
+    {
+      formInput('action').value = 'Cb+#{cbdata.idx}';
+      formInput('json').innerHTML = JSON.stringify(org_cbParams);
+      formSubmit('.');
+    }
+
+    function applyConfig()
+    {
+      var i, w;
+      var cb = wdg('cburl').value;
+      for(i=0;i<CbMethods.length;i++) {
+        w = wdg(CbMethods[i]);
+        if(w && w.checked) {
+          cbParams.Method = CbMethods[i];
+        }
+      }
+      for(i=0;i<CbEncodings.length;i++) {
+        w = wdg(CbEncodings[i]);
+        if(w && w.checked) {
+          cbParams.Encoding = CbEncodings[i];
+        }
+      }
+      if(cb !== '' && cb.indexOf('http://') !== 0 && cb.indexOf('https://') !== 0 &&
+          cb.indexOf('ws://') !== 0 && cb.indexOf('wss://') !== 0 && cb.indexOf('tcp://') !== 0) {
+        cb = wdg('cbproto').value + "://" + cb;
+      }
+      cbParams.Url = cb;
+      cbParams.Credentials = { user: wdg('cbuser').value, pass: wdg('cbpass').value };
+    }
+
+    function save()
+    {
+      applyConfig();
+      cbParams.Schedule = {
+        minPeriod: parseInt(wdg('minwait').value) || 30,
+        minMinutes: (wdg('minunit').value.substr(0,1) === 'm'),
+        minHours: (wdg('minunit').value.substr(0,1) === 'h'),
+        maxPeriod: parseInt(wdg('maxwait').value) || 30,
+        maxMinutes: (wdg('maxunit').value.substr(0,1) === 'm'),
+        maxHours: (wdg('maxunit').value.substr(0,1) === 'h'),
+        maxOffset: parseInt(wdg('maxofs').value) || 0,
+        alignPeriod: (wdg('schedmode').value === "aligncb"),
+        paused: wdg('paused').checked
+      };
+      saveCallbackParams();
+    }
+
+    function refreshLogs(trigger)
+    {
+      let testcb = '';
+      if(trigger) {
+          applyConfig();
+          wdg('logidx').value = '-1';
+          testcb = 'testcb='+encodeURIComponent(JSON.stringify(cbParams));
+          setTimeout("refreshLogs(0);", 1000);
+      } else {
+          testcb = 'idx='+encodeURIComponent(wdg('logidx').value);
+      }
+      wdg('cbLogs').src = 'logcb.html?'+ testcb +
+          '&username='+encodeURIComponent('#{FORM.username}')+
+          '&userpass='+encodeURIComponent('#{FORM.userpass}');
+    }
+
+    function updatetimingUI()
+    {
+      wdg('editminwait').style.color = (wdg('dynrate').checked ? '' : 'gray');
+      wdg('editmaxofs').style.color = (wdg('schedmode').value === "aligncb" ? '' : 'gray');
+      wdg('copymaxwait').innerHTML = wdg('maxwait').value + wdg('maxunit').value;
+      wdg('copymaxunit').innerHTML = wdg('maxunit').value;
+      wdg('minmode').innerHTML = (wdg('schedmode').value === "aligncb" ? 'every' : 'after');
+      wdg('maxmode').innerHTML = (wdg('schedmode').value === "aligncb" ? 'every' : 'after');
+    }
+
+    function configureUI()
+    {
+      var str_proto = wdg('cbproto').value;
+      var str_type = wdg('cbtype').value;
+      var str_auth = wdg('authtype').value;
+      var allsteps = ['emoncmsdescr','valarmdescr','xivelydescr','yapidescr','influxdescr','mqttdescr',
+      'emoncms','valarm','xively','influxdb', 'mqtt',
+      'url','format','auth','authuser','authpass','timing','test','ok'];
+      var steps;
+      if (str_type === 'none')         steps = {};
+      else if (str_type === 'emoncms') steps = {'emoncmsdescr':1,'emoncms':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'valarm')  steps = {'valarmdescr':1,'valarm':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'xively')  steps = {'xivelydescr':1,'xively':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'yocto')   steps = {'yapidescr':1,'url':1,'auth':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'influx')  steps = {'influxdescr':1,'influxdb':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'mqtt')    steps = {'mqttdescr':1,'mqtt':1,'timing':1,'test':1,'ok':1};
+      else steps={'url':1,'format':1,'auth':1,'timing':1,'test':1,'ok':1};
+
+      wdg('optionhttp').style.display=(str_proto === 'ws'?'none':'');
+      wdg('optionmd5').style.display=(str_proto === 'ws'?'none':'');
+      wdg('optionws').style.display=(str_proto === 'ws'?'':'none');
+      if (str_auth === 'md5' || str_auth === 'ws') { steps['authpass'] = 1; }
+      else if (str_auth ==='http')  { steps['authuser'] = 1; steps['authpass'] = 1; }
+      var index = 2;
+      for(var i = 0; i < allsteps.length; i++) {
+        if(steps[allsteps[i]] === 1) {
+          wdg(allsteps[i] + "setup").style.display = '';
+            var w = wdg(allsteps[i] + "step");
+            if(w != null) {
+              w.innerHTML = index + '.&nbsp;';
+              index++;
+          }
+        } else wdg(allsteps[i]+"setup").style.display = 'none';
+      }
+      updatetimingUI();
+    }
+
+    function updateXivelyParams(url)
+    {
+      var p1 = url.indexOf('/feeds/');
+      var p2 = url.indexOf('.csv');
+      if ((p1>0) && (p2>p1)) wdg('feed').value = url.slice(p1 + 7,p2);
+      else wdg('feed').value = '';
+      p1 = url.indexOf('?key=');
+      wdg('key').value = (p1 > 0 ? url.slice(p1 + 5) : '');
+      wdg('PUT').checked = true;
+      wdg('CSV').checked = true;
+      wdg('cbproto').value = 'http';
+    }
+
+    function updateEmoncmsParams(url)
+    {
+      if (url.indexOf('http://') === 0) {
+        url = url.slice(7)
+      }
+      var p3 = url.indexOf('/input/post.json?');
+      wdg('customserver').value = url.slice(0,p3);
+      var args = url.slice(p3+17).split("&");
+      var i;
+      for(i = 0; i < args.length;i++) {
+        var parts = args[i].split('=');
+        if (parts[0] === 'apikey') {
+          wdg('apikey').value = parts[1];
+        } else if (parts[0] === 'node') {
+          wdg('nodeno').value = parts[1];
+        }
+      }
+      wdg('GET').checked = true;
+      wdg('EMONCMS').checked = true;
+      wdg('cbproto').value = 'http';
+    }
+
+    function updateInfluxDBParams(url)
+    {
+      if (url.indexOf('http://') === 0) {
+        url = url.slice(7)
+      }
+      var p3 = url.indexOf('/write?db=');
+      var dbserver = url.slice(0,p3);
+      var args = url.slice(p3+10).split("&");
+      if(dbserver.slice(-5) === ':8086') {
+        dbserver = dbserver.slice(0,-5);
+      }
+      wdg('dbserver').value = dbserver;
+      wdg('dbname').value = args[0];
+      for(var i = 1; i < args.length; i++) {
+        var pair = args[i].split("=");
+        if(pair[0] === 'u') {
+          wdg('dbuser').value = pair[1];
+        } if(pair[0] === 'p') {
+          wdg('dbpass').value = pair[1];
+        }
+      }
+      wdg('POST').checked = true;
+      wdg('INFLUXDB').checked = true;
+      wdg('cbproto').value = 'http';
+    }
+
+    function updateMQTTParams(url, user, pass)
+    {
+      if (url.indexOf('tcp://') === 0) {
+        url = url.slice(6)
+      }
+      var end = url.indexOf('/');
+      var sep = url.indexOf(':');
+      var port= 1883;
+      var host;
+      if (sep >= end || sep < 0) {
+        host = url.slice(0,end);
+      } else {
+        host = url.slice(0, sep);
+        port = url.slice(sep + 1, end)
+      }
+      var ip = url.indexOf('cid=',end);
+      var cid='';
+      var root ='';
+      if (ip>0) {
+        cid = url.slice(ip+4).split("&")[0];
+      }
+      var rp = url.indexOf('root=',end);
+      if (rp>0) {
+        root = url.slice(rp+5).split("&")[0];
+      }
+      wdg('mqtt_host').value = host;
+      wdg('mqtt_port').value = port;
+      wdg('mqtt_cid').value = cid;
+      wdg('mqtt_root').value = root;
+      wdg('mqtt_user').value = user;
+      wdg('mqtt_pass').value = pass;
+      if (user !== ""){
+        wdg('authtype').value = 'http';
+      } else{
+        wdg('authtype').value = 'none';
+      }
+      wdg('POST').checked = true;
+      wdg('MQTT').checked = true;
+      wdg('cbproto').value = 'tcp';
+    }
+
+    function updateValarmParams(url,pass)
+    {
+      var srv = 'input.valarm.net';
+      if (url.indexOf('http://') === 0) {
+        url = url.slice(7)
+      }
+      var p2 = url.indexOf('/');
+      if(p2 > 0 && url.indexOf('valarm.net') >= 0) {
+        srv = url.slice(0,p2);
+      }
+      var cburl = '';
+      var routingCode = '';
+      var p3 = url.indexOf('YoctoApiAlert/');
+      if(p3 > 0) {
+        cburl = url.slice(p3+14);
+        if(cburl.slice(-4,-3) === '.') {
+          cburl = cburl.slice(0,-4);
+        }
+        routingCode = cburl;
+        if(pass !== '') {
+          routingCode += '_********************';
+          wdg('cbpass').value = pass;
+        }
+      }
+      wdg('cburl').value = srv+'/services/v1/postYoctoApiAlert/' + cburl + '.svc';
+      wdg('valarmserver').value = srv;
+      wdg('routingcode').value = routingCode;
+      wdg('cbuser').value = 'md5';
+      wdg('authtype').value = 'md5';
+      wdg('POST').checked = true;
+      wdg('Yocto-API').checked = true;
+      wdg('cbproto').value = 'http';
+    }
+
+    function typechanged()
+    {
+      var str_type = wdg('cbtype').value;
+      if (str_type === 'none') {
+        wdg('cburl').value = '';
+        wdg('cbuser').value = '';
+        wdg('cbpass').value = '';
+        wdg('authtype').value = 'none';
+      } else if (str_type === 'emoncms') {
+        updateEmoncmsParams(wdg('cburl').value);
+        wdg('cbuser').value = '';
+        wdg('cbpass').value = '';
+        wdg('authtype').value = 'none';
+      } else if (str_type === 'valarm') {
+        updateValarmParams(wdg('cburl').value,wdg('cbpass').value)
+      } else if (str_type === 'xively') {
+        updateXivelyParams(wdg('cburl').value);
+        wdg('cbuser').value = '';
+        wdg('cbpass').value = '';
+        wdg('authtype').value = 'none';
+      } else if (str_type === 'influx') {
+        updateInfluxDBParams(wdg('cburl').value);
+        wdg('cbuser').value = '';
+        wdg('cbpass').value = '';
+        wdg('authtype').value = 'none';
+      } else if (str_type === 'mqtt') {
+        updateMQTTParams(wdg('cburl').value,wdg('cbuser').value,wdg('cbpass').value);
+        wdg('authtype').value = 'http';
+      } else if (str_type === 'yocto') {
+        wdg('POST').checked = true;
+        wdg('Yocto-API').checked = true;
+      }
+      configureUI();
+    }
+
+    function authchanged()
+    {
+      var str_type = wdg('authtype').value;
+      if (str_type === 'none') {
+        wdg('cbuser').value = '';
+        wdg('cbpass').value = '';
+      } else if (str_type === 'md5') {
+        wdg('cbuser').value = 'md5';
+      } else if (str_type === 'ws') {
+        wdg('cbuser').value = 'ws';
+      } else if (str_type === 'http') {
+      }
+      configureUI();
+    }
+
+    function protochanged()
+    {
+      var str_proto = wdg('cbproto').value;
+      if (str_proto === 'ws') {
+        wdg('GET').checked = true;
+        if(wdg('authtype').value === 'md5') {
+          wdg('authtype').value = 'ws';
+          wdg('cbuser').value = 'ws';
+        }
+      } else{
+        wdg('POST').checked = true;
+        if(wdg('authtype').value === 'ws') {
+          wdg('authtype').value = 'md5';
+          wdg('cbuser').value = 'md5';
+        }
+      }
+      configureUI();
+    }
+
+    function influxchanged()
+    {
+      var serverurl = wdg('dbserver').value;
+      if (serverurl.indexOf("http://") === 0){serverurl = serverurl.slice(7);}
+      if (serverurl.charAt(serverurl.length-1) === '/') serverurl = serverurl.slice(0,serverurl.length-1);
+      if(serverurl.indexOf(':') < 0) serverurl += ':8086';
+      var url = serverurl + '/write?db='+ wdg('dbname').value;
+      if (wdg('dbuser').value) url += '&u='+wdg('dbuser').value;
+      if (wdg('dbpass').value) url += '&p='+wdg('dbpass').value;
+      url += '&precision=s';
+      wdg('cburl').value = url;
+    }
+
+    function mqttchanged()
+    {
+      var host = wdg('mqtt_host').value;
+      var port = wdg('mqtt_port').value;
+      var cid = wdg('mqtt_cid').value;
+      var root = wdg('mqtt_root').value;
+      if (port === ''){ port = '1883';}
+      var url =host + ':' + port;
+      var sep="/?";
+      if (cid!=='') {
+        url += sep +"cid=" + cid;
+        sep="&";
+      }
+      if (root!=='') {
+        url += sep +"root=" + root;
+      }
+      wdg('cburl').value = url;
+      wdg('cbuser').value = wdg('mqtt_user').value;
+      wdg('cbpass').value = wdg('mqtt_pass').value;
+      if (wdg('cbuser').value !== ""){
+        wdg('authtype').value = 'http';
+      } else{
+        wdg('authtype').value = 'none';
+      }
+    }
+
+    function emoncmschanged()
+    {
+      var serverurl = wdg('customserver').value;
+      if (serverurl.indexOf("http://") === 0){serverurl = serverurl.slice(7);}
+      if (serverurl === '') serverurl = 'emoncms.org';
+      if (serverurl.charAt(serverurl.length-1) === '/') serverurl = serverurl.slice(0,serverurl.length-1);
+      var nodeno = wdg('nodeno').value;
+      if (nodeno!=='') {
+        nodeno = '&node='+nodeno;
+      }
+      wdg('cburl').value = serverurl + '/input/post.json?apikey=' + wdg('apikey').value + nodeno;
+    }
+
+    function valarmchanged()
+    {
+      var parts = wdg("routingcode").value.split("_");
+      var srv = wdg("valarmserver").value;
+      if(srv === '') srv='input.valarm.net';
+      wdg('cburl').value = srv+'/services/v1/postYoctoApiAlert/' + parts[0] + '.svc';
+      if(parts.length > 1 && parts[1].slice(0,8) !== '********') {
+        wdg('cbpass').value = parts[1];
+      }
+    }
+
+    function xivelychanged()
+    { wdg('cburl').value = 'api.xively.com/v2/feeds/' + wdg('feed').value + '.csv?key=' + wdg('key').value; }
+
+    function preconfigureUI()
+    {
+      wdg(cbParams.Method).checked = 1;
+      wdg(cbParams.Encoding).checked = 1;
+      var cb = cbParams.Url;
+      if(cb !== '') {
+        var cbp = cb.split("://");
+        wdg('cbproto').value = cbp[0];
+        cb = cbp[1];
+      }
+      wdg('cburl').value = cb;
+      wdg('cbuser').value = cbParams.Credentials.user;
+      wdg('cbpass').value = cbParams.Credentials.pass;
+      wdg('schedmode').value = (cbParams.Schedule.alignPeriod ? 'aligncb' : 'deltacb');
+      wdg('minwait').value = cbParams.Schedule.minPeriod;
+      wdg('minunit').value = (cbParams.Schedule.minHours ? 'h' : (cbParams.Schedule.minMinutes ? 'm' : 's'));
+      wdg('maxwait').value = cbParams.Schedule.maxPeriod;
+      wdg('maxunit').value = (cbParams.Schedule.maxHours ? 'h' : (cbParams.Schedule.maxMinutes ? 'm' : 's'));
+      wdg('dynrate').checked = (wdg('minwait').value+wdg('minunit').value !== wdg('maxwait').value+wdg('maxunit').value);
+      wdg('maxofs').value = cbParams.Schedule.maxOffset;
+      wdg('paused').checked = cbParams.Schedule.paused;
+      if (cbParams.Url === '') {
+        wdg('cbtype').value = 'none';
+        wdg('authtype').value = 'none';
+      } else if (cbParams.Url.indexOf('/input/post.json?apikey=') >= 0 &&
+        (cbParams.Method === 'GET')){
+        wdg('cbtype').value = 'emoncms';
+        updateEmoncmsParams(cbParams.Url);
+      } else if (cbParams.Url.indexOf('.valarm.net/services/v1/postYoctoApiAlert/') >= 0 &&
+        (cbParams.Encoding === 'Yocto-API')){
+        wdg('cbtype').value = 'valarm';
+        updateValarmParams(cbParams.Url,wdg('cbpass').value);
+      } else if (cbParams.Encoding === 'INFLUXDB'){
+        wdg('cbtype').value = 'influx';
+        updateInfluxDBParams(cbParams.Url);
+      } else if (cbParams.Encoding === 'MQTT'){
+        wdg('cbtype').value = 'mqtt';
+        updateMQTTParams(cbParams.Url,wdg('cbuser').value,wdg('cbpass').value);
+      } else if ((cbParams.Url.substr(0,19) === 'http://api.cosm.com' ||
+        cbParams.Url.substr(0,21) === 'http://api.xively.com') &&
+        (cbParams.Method === 'PUT') && (cbParams.Encoding === 'CSV')){
+        wdg('cbtype').value =' xively';
+        wdg('authtype').value = 'none';
+        updateXivelyParams(cbParams.Url);
+      } else if (cbParams.Encoding === 'Yocto-API') {
+        wdg('cbtype').value = 'yocto';
+        if (wdg('cbuser').value === 'md5' || wdg('cbuser').value === 'ws' ||
+          (wdg('cbuser').value === '' && wdg('cbpass').value !== '')) {
+          var authType = (wdg('cbproto').value.substr(0,2) === 'ws' ? 'ws' : 'md5');
+          wdg('cbuser').value = authType;
+          wdg('authtype').value = authType;
+        } else if (wdg('cbuser').value !== ''){
+          wdg('authtype').value = 'http';
+        } else {
+          wdg('authtype').value = 'none';
+        }
+      } else {
+        wdg('cbtype').value = 'custom';
+        if (wdg('cbuser').value !== '' && wdg('cbpass').value !== ''){
+          wdg('authtype').value = 'http';
+        } else {
+          wdg('authtype').value = 'none';
+        }
+      }
+      configureUI();
+    }
+  h2(style='color:#555;font-variant:small-caps;text-align:center;') Outgoing callback configuration
+  div(style="height:40px")
+  span(style='display:inline-block;')
+    div(style='width:550px;text-align:justify;')
+      | You can configure this subdomain post the advertised values of all devices to a specific URL on a regular basis.
+      | If you wish to use this feature, select your preferred callback type and follow the configuration
+      | steps carefully.
+    br
+
+    div(style='width:550px;text-align:justify;')
+      p <b>1.</b> Specify the type of callback you want to use:&nbsp;
+        select(id='cbtype' onchange='typechanged()')
+          option(value='none') --- Select one ---
+          option(value='emoncms') Emoncms callback
+          option(value='valarm') Valarm.net callback
+          option(value='xively') Xively callback
+          option(value='influx') InfluxDB callback
+          option(value='mqtt') MQTT callback
+          option(value='yocto') Yocto-API callback
+          option(value='custom') User defined callback
+
+    div(id='emoncmsdescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>Emoncms</b> is an open-source cloud service where you can register to upload your sensor data.
+        | For more details, see <a target='_blank' href='http://emoncms.org'>emoncms.org</a>.
+        | Yoctopuce is not affiliated with Emoncms, however you might find this service quite useful.
+
+    div(id='valarmdescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>Valarm</b> is a professional cloud service where you can register to upload your sensor
+        | data, with advanced features. For more details, see <a target='_blank'
+        | href='http://www.valarm.net'>www.valarm.net</a>.
+        | Valarm is a reseller for Yoctopuce products, but Yoctopuce is not otherwise affiliated
+        | with Valarm. You might however find this service quite useful.
+
+    div(id='xivelydescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>Xively</b> is a commercial cloud service where you might be able to register to upload your
+        | sensor data. Yoctopuce is not affiliated with Xively. Note that since end of 2014, Xively is focusing on
+        | enterprise and OEM customers, and might therefore not be available to everyone.
+        | For more details, see <a target='_blank' href='http://xively.com'>xively.com</a>.
+
+    div(id='influxdescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>InfluxDB</b> is an open-source database for time series, metrics and events.
+        | You can easily install it on your own computer to record and graph your sensor data.
+        | For more details, see <a target='_blank' href='http://influxdb.com'>influxdb.com</a>.
+        | Yoctopuce is not affiliated with InfluxData, however you might find this software quite useful.
+
+    div(id='mqttdescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>MQTT</b> is an "Internet of Things" protocol to push sensor data to a central
+        | repository, named MQTT broker. For more details, see <a target='_blank' href='http://mqtt.org'>mqtt.org</a>.
+
+    div(id='yapidescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | Yoctopuce devices can be controlled remotely with <b>your own web-based service</b>.
+        | The <i>Yocto-API</i>
+        | HTTP callback protocol is designed so it can pass trough NAT filters without opening ports. See your
+        | device user manual for more details. Yocto-API HTTP callback is currently available for server scripts
+        | written in PHP, Java and Node.JS.
+
+    div(id='emoncmssetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='emoncmsstep' />&nbsp;
+        | First, register on Emoncms web site. Go to your Input list and click on the link
+        | <i>Input API Help</i>. Copy-paste your <i>Read &amp; Write</i>
+        | Apikey to the field below. If you want to use a custom installation of Emoncms you
+        | can set the base url of your server.
+        | Otherwise, leave the Custom server field empty.
+      p &nbsp; &nbsp;Apikey: &nbsp;
+        input(id='apikey' size="40" onchange='emoncmschanged()')
+        | &nbsp; Node number: &nbsp;
+        input(id='nodeno' size="3"  onchange='emoncmschanged()')
+      p &nbsp; &nbsp;Custom server (optional): &nbsp;
+        input(id='customserver' size="32" onchange='emoncmschanged()')
+      p Note: Make sure to copy the <i>Read &amp; Write</i> Apikey !
+
+    div(id='valarmsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='valarmstep' />&nbsp;
+        | First, register on the Valarm Tools Cloud (
+        a(target='_blank' href='http://tools.valarm.net') tools.valarm.net
+        | ) web site. Go to your the <i>Device Manager</i>
+        | tab and choose the device that you want to upload data to.
+        | Click on <i>Get API URL</i> and copy-paste the <i>Routing code</i> here.
+      p &nbsp; &nbsp;Routing code:
+        input(id='routingcode' size="68" onchange='valarmchanged()')
+      p(style='display:none') &nbsp; &nbsp;Valarm server:
+        input(id='valarmserver' size="32" onchange='valarmchanged()')
+        
+    div(id='influxdbsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='influxdbstep' />&nbsp;
+        | If not already done, install InfluxDB on your server (OR sign up for a hosted database on&nbsp;
+        a(target='_blank' href='http://customers.influxdb.com') customers.influxdb.com
+        | . Then create a database for storing your sensors data. You must enter the hostname or
+        | IP address of your InfluxDB server below, as well as the database name.
+      table
+        tr
+          td &nbsp; &nbsp;InfluxDB server:&nbsp;
+          td  
+            input(id='dbserver' size="40"  onchange='influxchanged()')
+        tr
+          td &nbsp; &nbsp;Database name:&nbsp;
+          td
+            input(id='dbname' size="40"  onchange='influxchanged()')
+      p
+        User-based authentication is not mandatory, but highly recommended if your database server is accessible on the network.
+      table
+        tr
+          td &nbsp; &nbsp;Username (optional):&nbsp;
+          td 
+            input(id='dbuser' size="40"  onchange='influxchanged()')
+        tr
+          td &nbsp; &nbsp;Password (optional):&nbsp;
+          td 
+            input(id='dbpass' size="40"  onchange='influxchanged()')
+
+    div(id='mqttsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='mqttstep' />&nbsp;
+        | You must enter the hostname or IP address of your MQTT Broker below.
+      table
+        tr
+          td &nbsp; &nbsp;Broker host:&nbsp;
+          td 
+            input(id='mqtt_host' size="40" onchange='mqttchanged()')
+        tr
+          td &nbsp; &nbsp;Broker port:&nbsp;
+          td 
+            input(id='mqtt_port' size="40" onchange='mqttchanged()')
+        tr
+          td &nbsp; &nbsp;Client ID:&nbsp;
+          td 
+            input(id='mqtt_cid' size="40" onchange='mqttchanged()')
+      p
+        | By default, sensors values are published on topic <tt>serialnumber</tt>/<tt>functionId</tt>. You can specify a root
+        | topic that will be prepended to the <tt>serialnumber</tt>/<tt>functionId</tt>.
+      table
+        tr
+          td &nbsp; &nbsp;Root topic (optional):&nbsp;
+          td 
+            input(id='mqtt_root' size="40"  onchange='mqttchanged()')
+      p User-based authentication is not mandatory, but highly recommended if your broker is public.
+      table
+        tr
+          td &nbsp; &nbsp;Username (optional):&nbsp;
+          td
+            input(id='mqtt_user' size="40"  onchange='mqttchanged()')
+        tr
+          td &nbsp; &nbsp;Password (optional):&nbsp;
+          td
+            input(id='mqtt_pass' size="40" type='password' onchange='mqttchanged()')
+
+    div(id='xivelysetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='xivelystep' />&nbsp;
+        | First, register on Xively web site and create a Device (feed) for your data.
+        | Then enter its Feed ID and device API Key here. You can find the feed ID on
+        | the upper right corner of the device page.
+      p &nbsp; &nbsp;Feed ID:&nbsp;
+        input(id='feed' size="10" onchange='xivelychanged()')
+      p &nbsp; &nbsp;API Key:&nbsp;
+        input(id='key' size="64"  onchange='xivelychanged()')
+      p
+        i Note: The device API key requires READ, UPDATE and CREATE permissions.
+
+    div(id='urlsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='urlstep' />&nbsp;
+        | Specify the URL to use for reporting values.
+      p &nbsp; &nbsp;Callback URL:&nbsp;
+        select(id='cbproto' onchange='protochanged()')
+          option(value='http') http://
+          option(value='https') https://
+          option(value='ws') ws://
+          option(value='wss') wss://
+          option(value='tcp') tcp://
+        input(id='cburl' style='width:300px' maxlength='91')
+
+    div(id='formatsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='formatstep' />&nbsp;
+        | Specify the type of request and data format to be used:
+      table(width="410")
+        tr
+          td &nbsp; &nbsp;
+          td HTTP Method:
+          td Data encoding:
+        tr
+          td
+          td
+            input(type="radio" name="meth" id="POST")
+            | POST
+          td
+            input(name="enc" type="radio" id="WWW-Form")
+            | WWW-Form-UrlEncoded
+        tr
+          td
+          td
+            input(type="radio" name="meth" id="PUT")
+            | PUT
+          td
+            input(name="enc" type="radio" id="CSV")
+            | CSV (comma-delimited)
+        tr
+          td
+          td
+            input(type="radio" name="meth" id="GET")
+            | GET
+          td
+            input(name="enc" type="radio" id="JSON-Object")
+            | JSON object
+        tr
+          td
+          td
+          td
+            input(type="radio" name="enc" id="JSON-Num")
+            | JSON (numerical)
+            br
+            input(type="radio" name="enc" id="EMONCMS")
+            | Emoncms
+            br
+            input(type="radio" name="enc" id="INFLUXDB")
+            | InfluxDB
+            br
+            input(type="radio" name="enc" id="MQTT")
+            | MQTT
+            br
+            input(type="radio" name="enc" id="Yocto-API")
+            | Yocto-API
+
+    div(id='authsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='authstep' />&nbsp;
+        | Specify the Type of security you want to use:&nbsp;
+        select(id='authtype' onchange='authchanged()')
+          option(value='none') None
+          option(id='optionhttp' value='http') HTTP authentication
+          option(id='optionmd5' value='md5') MD5 signature
+          option(id='optionws' value='ws') WebSocket authentication
+
+      table(width="350")
+        tr(id='authusersetup' style='display:none')
+          td &nbsp; &nbsp;
+          td Username:&nbsp;
+          td
+            input(id='cbuser' onkeyup='')
+        tr(id='authpasssetup' style='display:none')
+          td &nbsp; &nbsp;
+          td Password:&nbsp;
+          td
+            input(id='cbpass' type='password')
+
+    div(id='timingsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='timingstep' />&nbsp;
+        | Setup the desired HTTP callback schedule:
+      table(width="100%")
+        tr
+          td
+          td(colspan="2") Configure&nbsp;
+            select(id="schedmode" onchange="updatetimingUI()")
+              option(value="deltacb") interval between subsequent callbacks
+              option(value="aligncb") absolute periodicity of callbacks
+        tr
+          td
+          td
+          td Make an HTTP callback &nbsp;
+            span(id="maxmode") after
+            | &nbsp; &nbsp;
+            input(id='maxwait' size="5" onchange="updatetimingUI()")
+            select(id='maxunit' size="1" onchange="updatetimingUI()")
+              option(value="s") sec
+              option(value="m") min
+              option(value="h") hours
+        tr(id="editmaxofs")
+          td
+          td
+          td Align callback time to multiples of &nbsp;
+            span(id="copymaxwait")
+            | + &nbsp;
+            input(id='maxofs' size="5")
+            span(id="copymaxunit")
+        tr
+          td(style="padding-top: 6px;")
+        tr
+          td &nbsp; &nbsp;
+          td
+            input(type="checkbox" id="dynrate" onchange="updatetimingUI()")
+          td Increase callback frequency when measures have changed
+        tr(id="editminwait")
+          td
+          td
+          td Make an HTTP callback &nbsp;
+            span(id="minmode") after
+            | &nbsp; &nbsp;
+            input(id='minwait' size="5")
+            select(id='minunit' size="1")
+              option(value="s") sec
+              option(value="m") min
+              option(value="h") hours
+            | &nbsp; when there is something new
+
+    div(id='testsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b
+        |
+      table(width="100%")
+        tr
+          td
+            b <span id='teststep' />&nbsp;
+          td
+            | Press on the <b>Test</b> button to check your parameters.
+          td(style='text-align:right;')
+            a(href='javascript:void(0)' onclick="refreshLogs(1);return false;" class="button") Test
+        tr
+          td
+          td(style='text-align:left;')
+            | Output of last run:
+          td(style='text-align:right;')
+            a(href='javascript:void(0)' onclick="refreshLogs(0);return false;" class="button") Refresh
+        tr
+          td
+          td(colspan=2)
+            input#logidx(style='display:none;' value=cbdata.idx)
+            iframe#cbLogs(style='width:100%;height:100px;')
+
+    div(id='oksetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='okstep' />&nbsp;
+        | When everything is good, press on the <b>Save</b> button below.
+      p
+        input#paused(type='checkbox')
+        | &nbsp; disable this callback temporarily
+      table(width="100%")
+        tr
+          td(style='text-align:left;')
+            a(href='#' onclick="deleteCallback();" class="button") Delete callback
+          td(style='text-align:right;')
+            a(href='#' onclick="save();" class="button") Save
+            | &nbsp; &nbsp;
+            a(href='#' onclick="revertCallbackParams();" class="button") Revert
+
+  script.
+    preconfigureUI();

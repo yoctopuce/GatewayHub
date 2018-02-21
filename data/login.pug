@@ -17,16 +17,22 @@ body(style='font-family:sans-serif;')
   script.
     function formInput(name) { return window.document.forms["loginForm"][name]; }
     function formSubmit() { window.document.forms["loginForm"].submit();return false; }
+    function chkconf() {
+      if(formInput('confpass').value !== '') {
+        formInput('confpass').style.color = (formInput('confpass').value !== formInput('userpass').value ? 'red' : 'black');
+      }
+    }
     function hookSubmit(evt) {
       evt = evt || window.event;
       var charCode = evt.which || evt.keyCode;
-      if(charCode == 13) { formSubmit(); return false; }
+      if(charCode === 13) { formSubmit(); return false; }
       return true;
     }
     window.document.getElementById('loginPanel').innerHTML =
       "<p style='text-align:center;'><b id='loginTitle'>Login Required</b></p><table>" +
       "<tr><td>Username :&nbsp;</td><td><input name='username' onkeypress='return hookSubmit(event);'></td></tr>" +
       "<tr><td>Password :&nbsp;</td><td><input name='userpass' onkeypress='return hookSubmit(event);' type='password'></td></tr>" +
+      "<tr id='confirm' style='display:none'><td>Password (again) :&nbsp;</td><td><input name='confpass' onkeypress='return hookSubmit(event);' onkeyup='chkconf();' type='password'></td></tr>" +
       "</table><p style='text-align:right;' id='loginButton'>" +
       "<a class='button' style='font-size:16px;' href='#' onclick='formSubmit()'>Login</a>";
   script
@@ -37,18 +43,23 @@ body(style='font-family:sans-serif;')
   //- First login (no subdomain defined yet)
   if YSubdomain.IsFirstLogin()
     script.
-      document.getElementById('loginTitle').innerHTML = 'Setup "administrator" credentials';
+      document.getElementById('confirm').style.display = '';
+      document.getElementById('loginTitle').innerHTML = '1. Define the "administrator" credentials';
       document.getElementById('loginButton').style.display = 'none';
   //- Available subdomain list
   div(style='text-align:center;')
     if YSubdomain.IsAdmin(FORM.username, FORM.userpass)
       span(style='display:inline-block;')
+        if YSubdomain.IsFirstLogin()
+          p
+            b 2. Add your first subdomain
         p(style='text-align:justify;width:600px;')
           | A subdomain is a jonction point between a YoctoHub or VirtualHub running a WebSocket callback,
           | and a Web console or other Yoctopuce API application that requires interactive access to this hub.
     if YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass).length > 0
       include connect.pug
       script.
+        document.getElementById('loginTitle').innerHTML = 'Logged in successfully';
         function openSubdomain(name)
         {
           window.document.forms["loginForm"].action = name+'/';

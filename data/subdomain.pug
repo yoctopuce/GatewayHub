@@ -11,12 +11,18 @@ body(style='font-family:sans-serif;text-align:center;')
     img(src="/banner.png")
   form(method='POST' name='loginForm' style='display:none;')
     input(name='action')
+    input(name='idx')
     input(name='username' value=FORM.username)
     input(name='userpass' value=FORM.userpass)
   script.
     function wdg(id) { return document.getElementById(id); }
     function formInput(name) { return window.document.forms["loginForm"][name]; }
-    function formSubmit() { window.document.forms["loginForm"].submit();return false; }
+    function formSubmit(action)
+    {
+        if(action) window.document.forms["loginForm"].action = action;
+        window.document.forms["loginForm"].submit();
+        return false;
+    }
     function removeUserFromSubdomain(username)
     {
         formInput('action').value = '-'+username;
@@ -24,7 +30,7 @@ body(style='font-family:sans-serif;text-align:center;')
     }
     function changeSubdomainCallbackPwd()
     {
-        if(wdg('cbpass').type == 'password') {
+        if(wdg('cbpass').type === 'password') {
             wdg('cbpassBtn').innerHTML = 'save';
             wdg('cbpass').type = 'text';
         } else {
@@ -42,6 +48,19 @@ body(style='font-family:sans-serif;text-align:center;')
         formInput('action').value = '+'+wdg('adduser').value+'|'+wdg('addpass').value+'|'+(wdg('addadmin').checked?'1':'0');
         formSubmit();
     }
+    function editOutgoingCallback(idx)
+    {
+        formInput('action').value = '';
+        formInput('idx').value = idx;
+        formSubmit('editcb.html');
+    }
+    function addOutgoingCallback()
+    {
+        formInput('action').value = '';
+        formInput('idx').value = -1;
+        formSubmit('editcb.html');
+    }
+
   include connect.pug
   h2(style='color:#555;font-variant: small-caps;') #{subdom.name} Subdomain
   div(style="height:40px")
@@ -87,7 +106,7 @@ body(style='font-family:sans-serif;text-align:center;')
                 tr
                   td #{user.user}
                   td #{user.admin ? '(admin)' : ''}
-                  if user.user != FORM.username
+                  if user.user !== FORM.username
                     td(style='text-align:right;')
                       a(href='#' onclick="removeUserFromSubdomain('"+user.user+"');" class="button") remove
         tr#addFields(style='display:none;')
@@ -111,14 +130,39 @@ body(style='font-family:sans-serif;text-align:center;')
       tr
         td(colspan=3) <hr>
       tr
-        td(colspan=3) Websocket callback logs:<br>
-          textarea(cols=100,rows=10)
+        td(style='vertical-align:top;') Outgoing callbacks:<br>
+          a(href='#' onclick="addOutgoingCallback();" class="button") add
+        td(style='vertical-align:top;' colspan=2)
+          table(style='width:100%;')
+            each cbdata,idx in subdom.cback
+              tr
+                td #{cbdata.Method}
+                td #{cbdata.Encoding}
+                td(style='text-align:right;')
+                  a(href='#' onclick="editOutgoingCallback(" + idx + ");" class="button") edit
+              tr
+                td(colspan=3) #{cbdata.Url}
+              tr
+                td(colspan=2) #{cbdata.imm_describeSchedule()}
+                td #{cbdata.Schedule.paused ? '(paused)' : ''}
+              tr
+                td(colspan=3) <hr>
+      tr
+        td(colspan=3) <hr>
+      tr
+        td(colspan=3) Incoming websocket callback logs:<br>
+          textarea(cols=100 rows=10 readonly)
             each line in subdom.hublog
               | #{line+'\n'}
       tr
-        td(colspan=3) API connection logs:<br>
-          textarea(cols=100,rows=10)
+        td(colspan=3) Incoming API connection logs:<br>
+          textarea(cols=100 rows=10 readonly)
             each line in subdom.apilog
+              | #{line + '\n'}
+      tr
+        td(colspan=3) Outgoing callback logs:<br>
+          textarea(cols=100 rows=10 readonly)
+            each line in subdom.outlog
               | #{line + '\n'}
       tr
         td(colspan=2)
