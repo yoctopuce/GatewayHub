@@ -1,5 +1,2 @@
-- Complete MQTT client support
-- Misc cleanup
-- Add README.md file
-- Add support for Yocto-API uploads
-- Fix race condition when handling yocto-api callback commands
+- Add support for PRTG callback
+- Add workaround for broken ws:// support on iOS

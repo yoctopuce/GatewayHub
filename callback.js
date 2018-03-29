@@ -114,6 +114,8 @@ class YCallback
         let module = YModule.FirstModuleInContext(yctx);
         while(module) {
             let serial = await module.get_serialNumber();
+            let logname = await module.get_logicalName();
+            let devname = (logname !== '' ? logname : serial);
             let fcount = await module.functionCount();
             for(let f = 0; f < fcount; f++) {
                 let fclass = await module.functionBaseType(f);
@@ -133,7 +135,7 @@ class YCallback
                 if (fclass !== 'Sensor' && ftype !== 'AnButton') {
                     if (ftype === 'Cellular' || ftype === 'Wireless') {
                         if (this.Encoding === 'CSV' || this.Encoding === 'JSON-Num' || this.Encoding === 'EMONCMS' ||
-                            this.Encoding === 'INFLUXDB') {
+                            this.Encoding === 'INFLUXDB' || this.Encoding === 'PRTG') {
                             // drop non numerical value and remove '%' sign at end of advertised values
                             // (would break many graphing software, including Cosm, influxdb, etc)
                             let numVal = parseInt(funcVal);
@@ -142,7 +144,7 @@ class YCallback
                         }
                     } else {
                         if (this.Encoding === 'JSON-Num' || this.Encoding === 'EMONCMS' ||
-                            this.Encoding === 'INFLUXDB') {
+                            this.Encoding === 'INFLUXDB' || this.Encoding === 'PRTG') {
                             continue;
                         }
                     }
@@ -166,6 +168,8 @@ class YCallback
                             buf = '&time=' + utcSec;
                         }
                         buf += '&json={';
+                    } else if (this.Encoding === 'PRTG') {
+                        buf = '{"prtg":{"result":[\r\n';
                     } else {
                         buf = '{"timestamp":';
                         if (this.Encoding !== 'JSON-Num') {
@@ -198,26 +202,46 @@ class YCallback
                     } else if (this.Encoding === 'INFLUXDB') {
                         buf += funcName + '=' + funcVal;
                     } else {
-                        buf += '"' + funcName + '":';
+                        if (this.Encoding === 'PRTG') {
+                            buf += '{"channel":';
+                        }
+                        buf += '"' + funcName + '"';
+                        if (this.Encoding === 'PRTG') {
+                            buf += ',"value"';
+                        }
+                        buf += ':';
                         if (this.Encoding !== 'JSON-Num' && this.Encoding !== 'EMONCMS') buf += '"';
                         buf += funcVal;
                         if (this.Encoding !== 'JSON-Num' && this.Encoding !== 'EMONCMS') buf += '"';
+                        if (this.Encoding === 'PRTG') {
+                            buf += ',"float":"1","DecimalMode":"All"}';
+                        }
                         if (this.Method !== 'GET') buf += '\r\n';
                     }
                 } else {
                     // add generic
                     if (this.Encoding === 'WWW-Form') {
-                        buf += serial + '%23' + funcId + '=' + (autoname && funcName ? funcName : funcVal);
+                        buf += devname + '%23' + funcId + '=' + (autoname && funcName ? funcName : funcVal);
                     } else if (this.Encoding === 'CSV') {
-                        buf += serial + '.' + funcId + ',' + funcVal;
+                        buf += devname + '.' + funcId + ',' + funcVal;
                         if (this.Method !== 'GET') buf += '\r\n';
                     } else if (this.Encoding === 'INFLUXDB') {
-                        buf += serial + '_' + funcId + '=' + funcVal;
+                        buf += devname + '_' + funcId + '=' + funcVal;
                     } else {
-                        buf += '"' + serial + '_' + funcId + '":';
+                        if (this.Encoding === 'PRTG') {
+                            buf += '{"channel":';
+                        }
+                        buf += '"' + devname + '.' + funcId + '"';
+                        if (this.Encoding === 'PRTG') {
+                            buf += ',"value"';
+                        }
+                        buf += ':';
                         if (this.Encoding !== 'JSON-Num' && this.Encoding !== 'EMONCMS') buf += '"';
                         buf += (autoname && funcName ? funcName : funcVal);
                         if (this.Encoding !== 'JSON-Num' && this.Encoding !== 'EMONCMS') buf += '"';
+                        if (this.Encoding === 'PRTG') {
+                            buf += ',"float":"1","DecimalMode":"All"}';
+                        }
                         if (this.Method !== 'GET') buf += '\r\n';
                     }
                 }
@@ -229,6 +253,11 @@ class YCallback
                 // append timestamp
                 buf += ' '+utcSec;
             }
+        } else if(this.Encoding === 'PRTG') {
+            if (buf === '') {
+                buf = '{"prtg":{"result":[';
+            }
+            buf += ']}}';
         } else if(this.Encoding !== 'WWW-Form' && this.Encoding !== 'CSV') {
             if (buf === '') buf = '{';
             buf += '}'

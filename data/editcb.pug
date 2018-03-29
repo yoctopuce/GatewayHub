@@ -15,7 +15,7 @@ body(style='font-family:sans-serif;text-align:center;')
     textarea(name='json')
   script.
     window.CbMethods = ['POST', 'GET', 'PUT'];
-    window.CbEncodings = ['WWW-Form', 'JSON-Object', 'CSV', 'Yocto-API', 'JSON-Num', 'EMONCMS', 'INFLUXDB', 'MQTT'];
+    window.CbEncodings = ['WWW-Form', 'JSON-Object', 'CSV', 'Yocto-API', 'JSON-Num', 'EMONCMS', 'INFLUXDB', 'MQTT', 'PRTG'];
     var cbParams = {
       Method: '#{cbdata.Method}',
       Encoding: '#{cbdata.Encoding}',
@@ -136,9 +136,9 @@ body(style='font-family:sans-serif;text-align:center;')
       var str_proto = wdg('cbproto').value;
       var str_type = wdg('cbtype').value;
       var str_auth = wdg('authtype').value;
-      var allsteps = ['emoncmsdescr','valarmdescr','xivelydescr','yapidescr','influxdescr','mqttdescr',
-      'emoncms','valarm','xively','influxdb', 'mqtt',
-      'url','format','auth','authuser','authpass','timing','test','ok'];
+      var allsteps = ['emoncmsdescr','valarmdescr','xivelydescr','yapidescr','influxdescr','prtgdescr','mqttdescr',
+                      'emoncms','valarm','xively','influxdb','prtg','mqtt',
+                      'url','format','auth','authuser','authpass','timing','test','ok'];
       var steps;
       if (str_type === 'none')         steps = {};
       else if (str_type === 'emoncms') steps = {'emoncmsdescr':1,'emoncms':1,'timing':1,'test':1,'ok':1};
@@ -146,6 +146,7 @@ body(style='font-family:sans-serif;text-align:center;')
       else if (str_type === 'xively')  steps = {'xivelydescr':1,'xively':1,'timing':1,'test':1,'ok':1};
       else if (str_type === 'yocto')   steps = {'yapidescr':1,'url':1,'auth':1,'timing':1,'test':1,'ok':1};
       else if (str_type === 'influx')  steps = {'influxdescr':1,'influxdb':1,'timing':1,'test':1,'ok':1};
+      else if (str_type === 'prtg')    steps = {'prtgdescr': 1, 'prtg': 1, 'timing': 1, 'test': 1, 'ok': 1};
       else if (str_type === 'mqtt')    steps = {'mqttdescr':1,'mqtt':1,'timing':1,'test':1,'ok':1};
       else steps={'url':1,'format':1,'auth':1,'timing':1,'test':1,'ok':1};
 
@@ -226,6 +227,21 @@ body(style='font-family:sans-serif;text-align:center;')
       }
       wdg('POST').checked = true;
       wdg('INFLUXDB').checked = true;
+      wdg('cbproto').value = 'http';
+    }
+
+    function updatePrtgParams(url)
+    {
+      if (url.indexOf('http://') === 0) {
+        url = url.slice(7)
+      }
+      var pos = url.indexOf('/');
+      var prtgserver = url.slice(0,pos);
+      var sensortoken = url.slice(pos+1);
+      wdg('prtgserver').value = prtgserver;
+      wdg('sensortoken').value = sensortoken;
+      wdg('POST').checked = true;
+      wdg('PRTG').checked = true;
       wdg('cbproto').value = 'http';
     }
 
@@ -386,6 +402,16 @@ body(style='font-family:sans-serif;text-align:center;')
       wdg('cburl').value = url;
     }
 
+    function prtgchanged()
+    {
+      var serverurl = wdg('prtgserver').value;
+      if (serverurl.indexOf("http://") === 0) { serverurl = serverurl.slice(7); }
+      if (serverurl.charAt(serverurl.length-1) === '/') serverurl = serverurl.slice(0,serverurl.length-1);
+      if(serverurl.indexOf(':') < 0) serverurl += ':5050';
+      var url = serverurl + '/'+ wdg('sensortoken').value;
+      wdg('cburl').value = url;
+    }
+
     function mqttchanged()
     {
       var host = wdg('mqtt_host').value;
@@ -474,6 +500,9 @@ body(style='font-family:sans-serif;text-align:center;')
       } else if (cbParams.Encoding === 'INFLUXDB'){
         wdg('cbtype').value = 'influx';
         updateInfluxDBParams(cbParams.Url);
+      } else if (cbParams.Encoding === 'PRTG'){
+        wdg('cbtype').value = 'prtg';
+        updatePrtgParams(cbParams.Url);
       } else if (cbParams.Encoding === 'MQTT'){
         wdg('cbtype').value = 'mqtt';
         updateMQTTParams(cbParams.Url,wdg('cbuser').value,wdg('cbpass').value);
@@ -522,6 +551,7 @@ body(style='font-family:sans-serif;text-align:center;')
           option(value='valarm') Valarm.net callback
           option(value='xively') Xively callback
           option(value='influx') InfluxDB callback
+          option(value='prtg') PRTG callback
           option(value='mqtt') MQTT callback
           option(value='yocto') Yocto-API callback
           option(value='custom') User defined callback
@@ -553,6 +583,13 @@ body(style='font-family:sans-serif;text-align:center;')
         | You can easily install it on your own computer to record and graph your sensor data.
         | For more details, see <a target='_blank' href='http://influxdb.com'>influxdb.com</a>.
         | Yoctopuce is not affiliated with InfluxData, however you might find this software quite useful.
+
+    div(id='prtgdescrsetup' style='width:550px;text-align:justify;display:none')
+      p
+        | <b>PRTG</b> is a commercial system, device and application monitoring solution.
+        | You can easily install it on windows to record and graph your sensor data.
+        | For more details, see <a target='_blank' href='https://www.paessler.com/prtg'>www.paessler.com/prtg</a>.
+        | Yoctopuce is not affiliated with PAESSLER, however you might find this software quite useful.
 
     div(id='mqttdescrsetup' style='width:550px;text-align:justify;display:none')
       p
@@ -623,6 +660,24 @@ body(style='font-family:sans-serif;text-align:center;')
           td &nbsp; &nbsp;Password (optional):&nbsp;
           td 
             input(id='dbpass' size="40"  onchange='influxchanged()')
+
+    div(id='prtgsetup' style='width:550px;text-align:justify;display:none')
+      p
+        b <span id='prtgstep' />&nbsp;
+        | If not already done, install PRTG on a local Windows machine.
+        | Create a new PRTG device for storing your sensors data, and add under this
+        | device a sensor of type <i>HTTP Push Data Advanced Sensor</i>. Then enter
+        | below the hostname or address of your PRTG server, including probe server port
+        | (typically :5050), as well as the newly created sensor token.
+      table
+        tr
+          td &nbsp; &nbsp;PRTG probe server:&nbsp;
+          td
+            input(id='prtgserver' size="40"  onchange='prtgchanged()')
+        tr
+          td &nbsp; &nbsp;PRTG sensor token:&nbsp;
+          td
+            input(id='sensortoken' size="40"  onchange='prtgchanged()')
 
     div(id='mqttsetup' style='width:550px;text-align:justify;display:none')
       p
@@ -731,6 +786,9 @@ body(style='font-family:sans-serif;text-align:center;')
             br
             input(type="radio" name="enc" id="INFLUXDB")
             | InfluxDB
+            br
+            input(type="radio" name="enc" id="PRTG")
+            | PRTG
             br
             input(type="radio" name="enc" id="MQTT")
             | MQTT
