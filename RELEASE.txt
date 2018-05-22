@@ -1,2 +1,2 @@
-- Add support for PRTG callback
-- Add workaround for broken ws:// support on iOS
+- Fix callback password that where not saved.
+- New cleaner UI
