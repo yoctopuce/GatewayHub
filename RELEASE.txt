@@ -1,2 +1,4 @@
-- Fix callback password that where not saved.
-- New cleaner UI
+GatewayHub v1.10.31745
+
+- Add support for configuration change notifications
+- Fix websocket vulnerability warning
