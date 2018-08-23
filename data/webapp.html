@@ -10503,7 +10503,7 @@ while (1) {
 switch (_context48.prev = _context48.next) {
 case 0:
 _context48.next = 2;
-return self.GetAllBootLoaders_internal();
+return this.GetAllBootLoaders_internal();
 case 2:
 return _context48.abrupt('return', _context48.sent);
 case 3:
@@ -10527,7 +10527,7 @@ while (1) {
 switch (_context49.prev = _context49.next) {
 case 0:
 _context49.next = 2;
-return self.GetAllBootLoadersInContext_internal(yctx);
+return this.GetAllBootLoadersInContext_internal(yctx);
 case 2:
 return _context49.abrupt('return', _context49.sent);
 case 3:
@@ -10551,7 +10551,7 @@ while (1) {
 switch (_context50.prev = _context50.next) {
 case 0:
 _context50.next = 2;
-return self.CheckFirmware_internal(serial, path, minrelease);
+return this.CheckFirmware_internal(serial, path, minrelease);
 case 2:
 return _context50.abrupt('return', _context50.sent);
 case 3:
@@ -20580,7 +20580,7 @@ this.UNAUTHORIZED = -12;
 this.RTC_NOT_READY = -13;
 this.FILE_NOT_FOUND = -14;
 this._deviceListValidityMs = 10000;
-this.defaultCacheValidity = 5;
+this._defaultCacheValidity = 5;
 this.INVALID_INT = YAPI_INVALID_INT;
 this.INVALID_UINT = YAPI_INVALID_UINT;
 this.INVALID_LONG = YAPI_INVALID_LONG;
@@ -22292,7 +22292,7 @@ return GetAPIVersion;
 }, {
 key: 'imm_GetAPIVersion',
 value: function imm_GetAPIVersion() {
-return '1.10.31743';
+return '1.10.31830';
 }
 }, {
 key: 'InitAPI',
