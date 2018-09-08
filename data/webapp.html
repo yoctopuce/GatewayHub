@@ -11071,7 +11071,7 @@ if (!(resolve.errorType != YAPI_SUCCESS)) {
 _context63.next = 9;
 break;
 }
-return _context63.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, Y_HARDWAREID_INVALID));
+return _context63.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, YFunction.HARDWAREID_INVALID));
 case 9:
 return _context63.abrupt('return', resolve.result);
 case 10:
@@ -11114,7 +11114,7 @@ if (!(resolve.errorType != YAPI_SUCCESS)) {
 _context64.next = 9;
 break;
 }
-return _context64.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, Y_FUNCTIONID_INVALID));
+return _context64.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, YFunction.FUNCTIONID_INVALID));
 case 9:
 pos = resolve.result.indexOf('.');
 return _context64.abrupt('return', resolve.result.substr(pos + 1));
@@ -11138,7 +11138,7 @@ return this._funId;
 }
 var resolve = this._yapi.imm_resolveFunction(this._className, this._func);
 if (resolve.errorType != YAPI_SUCCESS) {
-return this._throw(resolve.errorType, resolve.errorMsg, Y_FUNCTIONID_INVALID);
+return this._throw(resolve.errorType, resolve.errorMsg, YFunction.FUNCTIONID_INVALID);
 }
 var pos = resolve.result.indexOf('.');
 return resolve.result.substr(pos + 1);
@@ -11165,7 +11165,7 @@ if (!(resolve.errorType != YAPI_SUCCESS)) {
 _context65.next = 7;
 break;
 }
-return _context65.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, Y_FRIENDLYNAME_INVALID));
+return _context65.abrupt('return', this._throw(resolve.errorType, resolve.errorMsg, YFunction.FRIENDLYNAME_INVALID));
 case 7:
 return _context65.abrupt('return', resolve.result);
 case 8:
@@ -20580,7 +20580,7 @@ this.UNAUTHORIZED = -12;
 this.RTC_NOT_READY = -13;
 this.FILE_NOT_FOUND = -14;
 this._deviceListValidityMs = 10000;
-this._defaultCacheValidity = 5;
+this.defaultCacheValidity = 5;
 this.INVALID_INT = YAPI_INVALID_INT;
 this.INVALID_UINT = YAPI_INVALID_UINT;
 this.INVALID_LONG = YAPI_INVALID_LONG;
@@ -22292,7 +22292,7 @@ return GetAPIVersion;
 }, {
 key: 'imm_GetAPIVersion',
 value: function imm_GetAPIVersion() {
-return '1.10.31830';
+return '1.10.32015';
 }
 }, {
 key: 'InitAPI',

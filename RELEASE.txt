@@ -1,3 +1,3 @@
-GatewayHub v1.10.31874
+GatewayHub v1.10.32027
 
-- Minor fix
+- Fix cache validity bug (cache no more refreshed) since build 31770
