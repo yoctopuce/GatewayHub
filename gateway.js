@@ -63,7 +63,7 @@ class YSubdomain
         let logbuff = this[logtype + 'log'];
         let now = new Date();
         let day = now.getFullYear().toString() + '-' + ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
-        let time = now.getHours().toString() + ':' + ('0' + (now.getMinutes() + 1)).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
+        let time = now.getHours().toString() + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
         console.log(day + ' ' + time + ' [' + this.name + '] ' + msg);
         msg = day + ' ' + time + ' ' + msg;
         if (logbuff.length > 0) {

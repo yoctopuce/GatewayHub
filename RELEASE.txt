@@ -1,3 +1,7 @@
-GatewayHub v1.10.35071
+GatewayHub v1.10.35635
 
-- Improve error handling on Wireless connexion
+- Add support for RangeFinder timeframe and quality
+- Add getting started example for Yocto-Pressure
+- Add isReadOnly() method to all YFunctions
+- Fix display of minutes in logs
+- Fix save/restore of thermistor settings
