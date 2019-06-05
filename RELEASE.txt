@@ -1,4 +1,4 @@
-GatewayHub v1.10.35635
+GatewayHub v1.10.35652
 
 - Add support for RangeFinder timeframe and quality
 - Add getting started example for Yocto-Pressure
