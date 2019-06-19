@@ -1,3 +1,95 @@
-GatewayHub v1.10.35708
+GatewayHub v1.10.35838
 
-- Update NPM dependency for package "ws"
+(GatewayHub)- new generated files
+(GatewayHub)- fix display of minutes in logs
+(Libs)- commit newly generated doc files
+(Libs)- Improve precision of datalogger retrieval boundaries; add support for highest sampling rate for genericSensors
+(Libs)- fix comments in MultiSensorController
+(Libs)- change multiSensController class name
+(Libs)- Add latest code for datalogger parsing
+(Libs)- Add tvoc class
+(Libs)- commit doc
+(Libs)- Fix restart of serial scripts after settings restoration
+(Libs)- fix old JS library for dynamic function count
+(Libs)- fix PHP library for dynamic function count
+(Libs)- remove code for old datalogger in YSensor
+(Libs)- Fix YDataSet.get_summary() and YDataSet.get_preview() that was not including firsts and lasts measures
+(Libs)- Fix missing measures in datalogger with subseconds intervall
+(Libs)- fix missing measure in datalogger
+(Libs)- Add support for datalogger usage attribute
+(Libs)- Add get_serialNumber to all YFunction
+(Libs)- fixed some typos
+(Libs)- new generated files
+(Libs)- fix loadThermistorResponseTable for bridge devices
+(Libs)- Document YFileRecord and YWlanRecord class
+(Libs)- Fix handling of '=' character query parameter of queryLine() method
+(Libs)- Library now use WebSocket by default
+(Libs)- Add support for RangeFinder timeframe and quality
+(Libs)- Add getting started example for Yocto-Pressure
+(Libs)- commit newly generated files
+(Libs)- Add isReadOnly() method to all YFunctions
+(Libs)- Add isReadOnly and sensortype Pt1000 to the documentation
+(Libs)- Add YArithmeticSensor class
+(Libs)- some improvement on datalogger set_autostart doc
+(Libs)- added some precision about get value
+(Libs)- added some precision about get_currentValue
+(Libs)- added line skip
+(Libs)- fix detail
+(Libs)- fix save/restore of thermistor settings
+(Misc)- generator:cleanup some logs
+(Misc)- node-red:add Node-REd to public directory
+(Misc)- cmdlin:add aarch64 target to GNU makefile
+(Misc)- Misc:[prod] added some code for macOS et fixed installer banners
+(Misc)- YModule.get_hardwareId() method return last know hardwareId when the module is disconnected
+(Misc)- add header to all doc examples
+(Misc)- virtualhub/ecmascript:fix support for devices with dynamic functions activation
+(Misc)- remove old datalogger example
+(Misc)- add Doc-GettingStarted-Yocto-Temperature-IR example
+(Misc)- Misc:[prod]  Yocto-Visualization Improved editor, fixed editor float cast issue
+(Misc)- custom projects:commit newly generated files
+(Misc)- cpp library:fixed many typos
+(Misc)- fix some typos
+(Misc)- devices+libs:Add support for sub-second time synchronization, now aligned up to +/- 0.02s
+(Misc)- devices+libs:Generate and commit firmware for sub-second time synchronization, now aligned up to +/- 0.02s
+(Misc)- vub:Minor fix in VirtualHub Control / Show a messsage in the notification bar when the VirtualHub is started or stoped
+(Misc)- Misc:[prod] work on yocto-brige calibration
+(Misc)- docs:commit generated files
+(Misc)- Misc:[prod] work on yocto-brige calibration, added last missing panels
+(Misc)- Misc:[prod] work on yocto-brige calibration, added NET3.5 compatibility
+(Misc)- Misc:[prod] work on yocto-brige calibration, fixed typo in filename
+(Misc)- bridgecalibration:fix filtering
+(Misc)- Misc:[prod] work on yocto-brige calibration, some UI polish
+(Misc)- Misc:[prod] Yocto-visualization, fixed "reset dataview command", add more option to data tracker
+(Misc)- Misc:[prod] Yocto-visualization, fixed  window resizing messing with font sizes
+(Misc)- Misc:[prod] Yocto-visualization, added support for updates availability checks
+(Misc)- Misc:[prod] Yocto-Visualization, improved updates availability checks
+(Misc)- Misc:[prod] Yocto-Discovery, added support for updates availability checks
+(Misc)- Misc:[prod] Yocto-Discovery, added support settings saving
+(Misc)- Misc:[prod] Yocto-Discovery, removed extra class file
+(Misc)- Misc:[prod] Yocto-Discovery, major version number  fix
+(Misc)- Misc:[prod] Yocto-BridgeCalibration, added support for updates availability checks
+(Misc)- Misc:[prod] Yocto-Discovery, fixed csprog glitch
+(Misc)- Misc:[prod] Yocto-Discovery, check update library is now compatible with .NET 3.5
+(Misc)- relays:add support for toggle apifunction
+(Misc)- Misc:[prod] Yocto-Visualization, fixed graphs crash on Linux
+(Misc)- bridgecalib:proj cleanup
+(Misc)- [prod] yicto-bridgecalibration:setup images
+(Misc)- apps:Fix MSI .NET detection
+(Misc)- wifi-n:work on infrastructure connexion
+(Misc)- Misc:[prod] Yocto-Visualization, improved behavior when sensors are read only
+(Misc)- ecmascript generator:fix log messages to use custom function
+(Misc)- delphi example:events based demo can be compiled in FPC
+(Misc)- delphi example:devices tree demo can be compiled in FPC
+(Misc)- delphi example:demo with cal backs can be compiled in FPC
+(Misc)- arithmericsensor:fix return value of defineExpression
+(Misc)- [prod]  api  doc:added precision about QNH only applicable to barometric altimeters
+(Misc)- [prod]  analog.yc:added support for IR temp sensor type + Tvoc class
+(Misc)- Misc:improved DigitalIO API doc
+(Misc)- Improve DataLogger streams parsing
+(Misc)- Fix some typos
+(Misc)- httpsupport:fix bug in optimized code (revealed by compilation warning)
+(Misc)- Misc:[prod] improved  set_ntpserver doc
+(Misc)- wifi-n:integrate Texas SimpleLink wifi driver properly in project generation
+(Misc)- maximicrovolt:enable file uploads and strings in YFS memory
+(Misc)- bootloader:add support for alternate flash port pic24fj256da206_flash
+(Misc)- serial devices:add support for arithmetic expressions in job files
