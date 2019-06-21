@@ -1,7 +1,8 @@
-GatewayHub v1.10.35838
+GatewayHub v1.10.35871
 
 (GatewayHub)- new generated files
 (GatewayHub)- fix display of minutes in logs
+(GatewayHub)- Update node.js dependency
 (Libs)- commit newly generated doc files
 (Libs)- Improve precision of datalogger retrieval boundaries; add support for highest sampling rate for genericSensors
 (Libs)- fix comments in MultiSensorController
@@ -93,3 +94,4 @@ GatewayHub v1.10.35838
 (Misc)- maximicrovolt:enable file uploads and strings in YFS memory
 (Misc)- bootloader:add support for alternate flash port pic24fj256da206_flash
 (Misc)- serial devices:add support for arithmetic expressions in job files
+(Misc)- datalogger:add recovery code in case of flash memory corruption (Fwerr)
