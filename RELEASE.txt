@@ -1,4 +1,4 @@
-GatewayHub v1.10.35871
+GatewayHub v1.10.35889
 
 (GatewayHub)- new generated files
 (GatewayHub)- fix display of minutes in logs
