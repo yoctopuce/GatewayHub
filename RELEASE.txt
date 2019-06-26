@@ -1,3 +1,5 @@
-GatewayHub v1.10.35931
+GatewayHub v1.10.35944
 
--test
+(GatewayHub)- Update node.js dependency
+(Misc)- serial devices:add support for arithmetic expressions in job files
+(Misc)- datalogger:add recovery code in case of flash memory corruption (Fwerr)
