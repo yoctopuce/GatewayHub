@@ -2,43 +2,15 @@ doctype html
 head
     title #{subdom.name} Gateway Hub
 head
-    link(rel='stylesheet', href='/style.css')
-    style.
-        table th {
-            border: 0;
-            text-align: left;
-            background-color: #eee;
-        }
-
-        table td {
-            border: 0;
-            text-align: left;
-        }
-
-        #cbcredential {
-            border: none
-        }
-
-        a.button {
-            display: inline-block;
-            text-decoration: none;
-            color: black;
-            padding: 1px 4px 2px 4px;
-            border: 1px solid gray;
-            border-radius: 4px;
-            background: #eee;
-            font-size: 12px;
-        }
+    include style
 body
     include banner.pug
+    include login_info.pug
+    form(method='POST' name='loginForm' style='display:none;')
+        input(name='action')
+        input(name='idx')
+
     div#maincontent
-        - var subdomains = YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass)
-        include login_info
-        form(method='POST' name='loginForm' style='display:none;')
-            input(name='action')
-            input(name='idx')
-            input(name='username' value=FORM.username)
-            input(name='userpass' value=FORM.userpass)
         script.
             function wdg(id)
             {
@@ -59,15 +31,45 @@ body
                 formInput('action').value = '-' + username;
                 formSubmit();
             }
-            function changeSubdomainCallbackPwd()
+            function confirmDelete ()
+            {
+                var deleteButton = document.getElementById("deleteButton");
+                var deleteConfirm = document.getElementById("deleteConfirm");
+                deleteButton.disabled = !(deleteConfirm.value === "#{subdom.name}");
+            }
+
+
+            function deleteSubdomain()
+            {
+                if(deleteConfirm.value === "#{subdom.name}") {
+                    formInput('action').value = '-#{subdom.name}';
+                    formSubmit('/');
+                }
+            }
+
+            function viewSubdomainCallbackPwd()
             {
                 if (wdg('cbpass').type === 'password') {
-                    wdg('cbpassBtn').innerHTML = 'save';
                     wdg('cbpass').type = 'text';
-                } else {
-                    formInput('action').value = '#' + wdg('cbpass').value;
-                    formSubmit();
                 }
+                wdg('cbpassBtnView').style.display = 'none';
+                wdg('cbpassBtnCancel').style.display = '';
+                wdg('cbpassBtnSave').style.display = '';
+            }
+            function cancelSubdomainCallbackPwd()
+            {
+                if (wdg('cbpass').type !== 'password') {
+                    wdg('cbpass').type = 'password';
+                }
+                wdg('cbpassBtnView').style.display = '';
+                wdg('cbpassBtnCancel').style.display = 'none';
+                wdg('cbpassBtnSave').style.display = 'none';
+            }
+
+            function saveSubdomainCallbackPwd()
+            {
+                formInput('action').value = '#' + wdg('cbpass').value;
+                formSubmit();
             }
 
             function showCbPwd()
@@ -79,12 +81,19 @@ body
                     wdg('cbcredentialBtn').innerHTML = 'show';
                     wdg('cbcredential').type = 'password';
                 }
+                return false;
             }
 
             function prepAddUserToSubdomain()
             {
                 wdg('prepAdd').style.display = 'none';
                 wdg('addFields').style.display = '';
+            }
+            function cancelAddUserToSubdomain()
+            {
+                formInput('action').value = '';
+                wdg('prepAdd').style.display = '';
+                wdg('addFields').style.display = 'none';
             }
             function addUserToSubdomain()
             {
@@ -101,63 +110,83 @@ body
             {
                 formInput('action').value = '';
                 formInput('idx').value = -1;
-                formSubmit('editcb.html');
+                window.document.forms["loginForm"].action = '/#{subdom.name}/editcb.html';
+                window.document.forms["loginForm"].submit();
             }
 
         include connect.pug
         h2 #{subdom.name} Subdomain
-        div(style="height:40px")
-        span(style='display:inline-block;')
-            table(style='width:550px;')
+        // div(style="height:40px")
+        div.section
+            h3 Connected hub
+            table.settingsTable
                 tr
-                    td Hub network name:
-                    td #{subdom.netname}
+                    td.settingsName
+                        | Hub network name:
+                    td.settingsValue #{subdom.netname}
                 tr
-                    td Hub status:
+                    td.settingsName
+                        | Hub status:
                     if !subdom.yapi
-                        td (hub offline)
+                        td.settingsValue (hub offline)
                     else if !subdom.client
-                        td online
-                        td(style='text-align:right;')
-                            a(href='#' onclick="connectToSubdomain('" + subdom.name + "');" class="button") connect
+                        td.settingsValue
+                            | online
+                            button(onclick="connectToSubdomain('" + subdom.name + "');" class="button") connect
                     else
                         td connected to #{subdom.client}
                 tr
-                    td(style='vertical-align:top;') Devices:
-                    td(colspan=2)
-                        table
+                    td.settingsName
+                        | Devices:
+                    td.settingsValue
+                        table#subdevices(class='border')
+                            tr
+                                th Serial #
+                                th Product name
+                                th Logical name
                             each dev in subdom.devs
                                 tr
                                     td #{dev.serialNumber}
-                                    td : #{dev.productName}
+                                    td #{dev.productName}
                                     td #{dev.logicalName}
-                if subdom.isAuthorized(FORM.username, FORM.userpass) > 1
+        if subdom.isAuthorized(USER.username, USER.userpass) > 1
+            div.section
+                h3 Connections information
+                table.settingsTable
                     tr
-                        td(colspan=3) <hr>
-                    tr
-                        td Hub callback password:
+                        td.settingsName
+                            | Hub callback password:
                         td
                             input#cbpass(type='password' size=30 value=subdom.pass)
-                        td(style='text-align:right;')
-                            a#cbpassBtn(href='#' onclick="changeSubdomainCallbackPwd();" class="button") view/edit
+                            span.button_inline
+                                button#cbpassBtnView(onclick="viewSubdomainCallbackPwd();" class="button") View/Edit
+                                button#cbpassBtnSave(onclick="saveSubdomainCallbackPwd();" class="button" style='display:none;') Save
+                                button#cbpassBtnCancel(onclick="cancelSubdomainCallbackPwd();" class="button" style='display:none;') Cancel
                     tr
-                        td(colspan=3) <hr>
-                    tr
-                        td(style='vertical-align:top;') Authorized API users:<br>
-                            a#prepAdd(href='#' onclick="prepAddUserToSubdomain();" class="button") add
-                        td(style='vertical-align:top;' colspan=2)
-                            table(style='width:100%;')
+                        td.settingsName Authorized API users:<br>
+                        td.settingsValue
+                            table#subdevices(class='border')
+                                tr
+                                    th Username
+                                    th Admin
+                                    th Action
                                 each user in subdom.auth
                                     tr
                                         td #{user.user}
-                                        td #{user.admin ? '(admin)' : ''}
-                                        if user.user !== FORM.username
-                                            td(style='text-align:right;')
-                                                a(href='#' onclick="removeUserFromSubdomain('" + user.user + "');" class="button") remove
+                                        td.centerCell #{user.admin ? 'admin' : 'user'}
+                                        if user.user !== USER.username
+                                            td.centerCell
+                                                button(onclick="removeUserFromSubdomain('" + user.user + "');" class="button") remove
+                                        else
+                                            td
+                    tr
+                        td.settingsName
+                        td.settingsValue
+                            button#prepAdd(onclick="prepAddUserToSubdomain();" class="button") Add user
                     tr#addFields(style='display:none;')
-                        td(style='vertical-align:top;') New user:
-                        td(colspan=2)
-                            table(style='width:100%;')
+                        td
+                        td
+                            table.compactTable
                                 tr
                                     td Username:
                                     td
@@ -167,78 +196,85 @@ body
                                     td
                                         input(id='addpass' type='password')
                                 tr
+                                    td Admin:
                                     td
                                         input#addadmin(type='checkbox')
-                                        | admin
-                                    td(style='text-align:right;')
-                                        a(href='#' onclick="addUserToSubdomain();" class="button") add user
+                                tr
+                                    td
+                                    td
+                                        span.button_inline
+                                            button(onclick="addUserToSubdomain();" class="button") Add
+                                            button(onclick="cancelAddUserToSubdomain();" class="button") Cancel
+
+            div.section
+                h3 Hub Callback parameters
+                table.settingsTable
                     tr
-                        td(colspan=3) <hr>
+                        td.settingsName callbackUrl:
+                        td.settingsValue ws://#{WS_Server.hostname}:#{WS_Server.wsport}/#{subdom.name}/callback
                     tr
-                        td Hub Callback parameters:
-                        td callbackUrl:
-                        td ws://#{WS_Server.hostname}:#{WS_Server.wsport}/#{subdom.name}/callback
+                        td.settingsName callbackMethod:
+                        td.settingsValue GET
                     tr
-                        td
-                        td callbackMethod:
-                        td GET
+                        td.settingsName callbackEncoding:
+                        td.settingsValue YOCTO_API
                     tr
-                        td
-                        td callbackEncoding:
-                        td YOCTO_API
-                    tr
-                        td
-                        td callbackCredentials:
-                        td
+                        td.settingsName callbackCredentials:
+                        td.settingsValue
                             input#cbcredential(type='password' size=30 value='ws:' + subdom.pass)
-                            a#cbcredentialBtn(href='#' onclick="showCbPwd();" class="button") show
+                            button#cbcredentialBtn(onclick="showCbPwd();" class="button") show
+            div.section
+                h3 API parameters
+                table.settingsTable
                     tr
-                        td API parameters:
-                        td WebSocket:
-                        td ws://user:pass@#{WS_Server.hostname}:#{WS_Server.wsport}/#{subdom.name}
+                        td.settingsName WebSocket:
+                        td.settingsValue ws://user:pass@#{WS_Server.hostname}:#{WS_Server.wsport}/#{subdom.name}
                     tr
-                        td
-                        td Secure WebSocket (JS + Java):
-                        td wss://user:pass@#{WS_Server.hostname}:#{WS_Server.wssport}/#{subdom.name}
-                tr
-                    td(colspan=3) <hr>
-                tr
-                    td(style='vertical-align:top;') Outgoing callbacks:<br>
-                        a(href='#' onclick="addOutgoingCallback();" class="button") add
-                    td(style='vertical-align:top;' colspan=2)
-                        table(style='width:100%;')
-                            each cbdata,idx in subdom.cback
-                                tr
-                                    td #{cbdata.Method}
-                                    td #{cbdata.Encoding}
-                                    td(style='text-align:right;')
-                                        a(href='#' onclick="editOutgoingCallback(" + idx + ");" class="button") edit
-                                tr
-                                    td(colspan=3) #{cbdata.Url}
-                                tr
-                                    td(colspan=2) #{cbdata.imm_describeSchedule()}
-                                    td #{cbdata.Schedule.paused ? '(paused)' : ''}
-                                tr
-                                    td(colspan=3) <hr>
-                tr
-                    td(colspan=3) <hr>
-                tr
-                    td(colspan=3) Incoming websocket callback logs:<br>
-                        textarea(cols=100 rows=10 readonly)
-                            each line in subdom.hublog
-                                | #{line + '\n'}
-                tr
-                    td(colspan=3) Incoming API connection logs:<br>
-                        textarea(cols=100 rows=10 readonly)
-                            each line in subdom.apilog
-                                | #{line + '\n'}
-                tr
-                    td(colspan=3) Outgoing callback logs:<br>
-                        textarea(cols=100 rows=10 readonly)
-                            each line in subdom.outlog
-                                | #{line + '\n'}
-                tr
-                    td(colspan=3 style='text-align:right;')
-                        a(href='#' onclick="formSubmit();" class="button") refresh
-    span(id='release')
-        include version.pug
+                        td.settingsName Secure WebSocket (JS + Java):
+                        td.settingsValue wss://user:pass@#{WS_Server.hostname}:#{WS_Server.wssport}/#{subdom.name}
+
+            div.section
+                h3 Outgoing callbacks
+                table.settingsTable
+                    each cbdata,idx in subdom.cback
+                        tr
+                            td.settingsName Callback #{idx}:
+                            td.settingsValue
+                                table
+                                    tr
+                                        td #{cbdata.Method}
+                                        td #{cbdata.Encoding}
+                                        td(style='text-align:right;')
+                                            button(onclick="editOutgoingCallback(" + idx + ");" class="button") Edit
+                                    tr
+                                        td(colspan=3) #{cbdata.Url}
+                                    tr
+                                        td(colspan=2) #{cbdata.imm_describeSchedule()}
+                                        td #{cbdata.Schedule.paused ? '(paused)' : ''}
+                    tr
+                        td.settingsName
+                            button(onclick="addOutgoingCallback();" class="button") Add outgoing callback
+                        td.settingsValue
+        div.section
+            h3 Incoming websocket callback logs
+            textarea(rows=10 readonly)
+                each line in subdom.hublog
+                    | #{line + '\n'}
+        div.section
+            h3 Incoming API connection logs:
+            textarea(rows=10 readonly)
+                    each line in subdom.apilog
+                        | #{line + '\n'}
+        div.section
+            h3 Outgoing callback logs:
+            textarea(rows=10 readonly)
+                    each line in subdom.outlog
+                        | #{line + '\n'}
+        if subdom.isAuthorized(USER.username, USER.userpass) > 1
+            div.section
+                h3.dangerous Delete this subdomain :
+                p.centerItem.centerCell
+                    |Please type in the name of the subdomain to enable delete button: &nbsp;
+                    input#deleteConfirm(onchange="confirmDelete();")
+                    button#deleteButton.dangerousButton(onclick="deleteSubdomain();" disabled) Delete this subdomain
+        include footer

@@ -1,3 +1,10 @@
-div#login_info
-    | Logged as #{FORM.username}&nbsp;
-    a(href='/' class="button") logout
+ul#menu_bar
+    li
+        a(href='/' ) Home
+    li.subMenuTitle
+        a.subMenuBtn#user(href='#')
+            img#usericon(src="/user.png")
+            |#{USER.username}
+        ul.subMenu
+            li
+                a(href='/logout') logout

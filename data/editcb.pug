@@ -1,38 +1,21 @@
 doctype html
 head
-    title Outgoing Callback configuration
-    link(rel='stylesheet', href='/style.css')
+    title Outgoing Callback configuration for #{subdom.name}
+head
+    include style
     style.
-        table th {
-            border: 0;
-            text-align: left;
-            background-color: #eee;
+        #refreshBtn{
+            align-self: flex-end;
         }
 
-        table td {
-            border: 0;
-            text-align: left;
-        }
-
-        a.button {
-            display: inline-block;
-            text-decoration: none;
-            color: black;
-            padding: 1px 4px 2px 4px;
-            border: 1px solid gray;
-            border-radius: 4px;
-            background: #eee;
-            font-size: 12px;
-        }
 body
     include banner.pug
+    include login_info
     div#maincontent
-        - var subdomains = YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass)
-        include login_info
+
+        - var subdomains = YSubdomain.GetSubdomainsFor(USER.username, USER.userpass)
         form(method='POST' name='loginForm' style='display:none;')
             input(name='action')
-            input(name='username' value=FORM.username)
-            input(name='userpass' value=FORM.userpass)
             textarea(name='json')
         script.
             window.CbMethods = ['POST', 'GET', 'PUT'];
@@ -143,9 +126,7 @@ body
                 } else {
                     testcb = 'idx=' + encodeURIComponent(wdg('logidx').value);
                 }
-                wdg('cbLogs').src = 'logcb.html?' + testcb +
-                    '&username=' + encodeURIComponent('#{FORM.username}') +
-                    '&userpass=' + encodeURIComponent('#{FORM.userpass}');
+                wdg('cbLogs').src = 'logcb.html?' + testcb;
             }
 
             function updatetimingUI()
@@ -584,16 +565,15 @@ body
                 }
                 configureUI();
             }
-        h2(style='color:#555;font-variant:small-caps;text-align:center;') Outgoing callback configuration
-        div(style="height:40px")
-        span(style='display:inline-block;')
-            div(style='width:550px;text-align:justify;')
+        h2 Outgoing callback configuration
+        div.section
+            div.editCBDescr
                 | You can configure this subdomain post the advertised values of all devices to a specific URL on a regular basis.
                 | If you wish to use this feature, select your preferred callback type and follow the configuration
                 | steps carefully.
             br
 
-            div(style='width:550px;text-align:justify;')
+            div.editCBSection
                 p <b>1.</b> Specify the type of callback you want to use:&nbsp;
                     select(id='cbtype' onchange='typechanged()')
                         option(value='none') --- Select one ---
@@ -606,13 +586,13 @@ body
                         option(value='yocto') Yocto-API callback
                         option(value='custom') User defined callback
 
-            div(id='emoncmsdescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='emoncmsdescrsetup' style='display:none')
                 p
                     | <b>Emoncms</b> is an open-source cloud service where you can register to upload your sensor data.
                     | For more details, see <a target='_blank' href='http://emoncms.org'>emoncms.org</a>.
                     | Yoctopuce is not affiliated with Emoncms, however you might find this service quite useful.
 
-            div(id='valarmdescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='valarmdescrsetup' style='display:none')
                 p
                     | <b>Valarm</b> is a professional cloud service where you can register to upload your sensor
                     | data, with advanced features. For more details, see <a target='_blank'
@@ -620,33 +600,33 @@ body
                     | Valarm is a reseller for Yoctopuce products, but Yoctopuce is not otherwise affiliated
                     | with Valarm. You might however find this service quite useful.
 
-            div(id='xivelydescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='xivelydescrsetup' style='display:none')
                 p
                     | <b>Xively</b> is a commercial cloud service where you might be able to register to upload your
                     | sensor data. Yoctopuce is not affiliated with Xively. Note that since end of 2014, Xively is focusing on
                     | enterprise and OEM customers, and might therefore not be available to everyone.
                     | For more details, see <a target='_blank' href='http://xively.com'>xively.com</a>.
 
-            div(id='influxdescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='influxdescrsetup' style='display:none')
                 p
                     | <b>InfluxDB</b> is an open-source database for time series, metrics and events.
                     | You can easily install it on your own computer to record and graph your sensor data.
                     | For more details, see <a target='_blank' href='http://influxdb.com'>influxdb.com</a>.
                     | Yoctopuce is not affiliated with InfluxData, however you might find this software quite useful.
 
-            div(id='prtgdescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='prtgdescrsetup' style='display:none')
                 p
                     | <b>PRTG</b> is a commercial system, device and application monitoring solution.
                     | You can easily install it on windows to record and graph your sensor data.
                     | For more details, see <a target='_blank' href='https://www.paessler.com/prtg'>www.paessler.com/prtg</a>.
                     | Yoctopuce is not affiliated with PAESSLER, however you might find this software quite useful.
 
-            div(id='mqttdescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='mqttdescrsetup' style='display:none')
                 p
                     | <b>MQTT</b> is an "Internet of Things" protocol to push sensor data to a central
                     | repository, named MQTT broker. For more details, see <a target='_blank' href='http://mqtt.org'>mqtt.org</a>.
 
-            div(id='yapidescrsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBDescr(id='yapidescrsetup' style='display:none')
                 p
                     | Yoctopuce devices can be controlled remotely with <b>your own web-based service</b>.
                     | The <i>Yocto-API</i>
@@ -654,7 +634,7 @@ body
                     | device user manual for more details. Yocto-API HTTP callback is currently available for server scripts
                     | written in PHP, Java and Node.JS.
 
-            div(id='emoncmssetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='emoncmssetup' style='display:none')
                 p
                     b <span id='emoncmsstep' />&nbsp;
                     | First, register on Emoncms web site. Go to your Input list and click on the link
@@ -670,7 +650,7 @@ body
                     input(id='customserver' size="32" onchange='emoncmschanged()')
                 p Note: Make sure to copy the <i>Read &amp; Write</i> Apikey !
 
-            div(id='valarmsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='valarmsetup' style='display:none')
                 p
                     b <span id='valarmstep' />&nbsp;
                     | First, register on the Valarm Tools Cloud (
@@ -683,7 +663,7 @@ body
                 p(style='display:none') &nbsp; &nbsp;Valarm server:
                     input(id='valarmserver' size="32" onchange='valarmchanged()')
 
-            div(id='influxdbsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='influxdbsetup' style='display:none')
                 p
                     b <span id='influxdbstep' />&nbsp;
                     | If not already done, install InfluxDB on your server (OR sign up for a hosted database on&nbsp;
@@ -711,7 +691,7 @@ body
                         td
                             input(id='dbpass' size="40"  onchange='influxchanged()')
 
-            div(id='prtgsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='prtgsetup' style='display:none')
                 p
                     b <span id='prtgstep' />&nbsp;
                     | If not already done, install PRTG on a local Windows machine.
@@ -729,7 +709,7 @@ body
                         td
                             input(id='sensortoken' size="40"  onchange='prtgchanged()')
 
-            div(id='mqttsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='mqttsetup' style='display:none')
                 p
                     b <span id='mqttstep' />&nbsp;
                     | You must enter the hostname or IP address of your MQTT Broker below.
@@ -765,7 +745,7 @@ body
                         td
                             input(id='mqtt_pass' size="40" type='password' onchange='mqttchanged()')
 
-            div(id='xivelysetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='xivelysetup' style='display:none')
                 p
                     b <span id='xivelystep' />&nbsp;
                     | First, register on Xively web site and create a Device (feed) for your data.
@@ -778,7 +758,7 @@ body
                 p
                     i Note: The device API key requires READ, UPDATE and CREATE permissions.
 
-            div(id='urlsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='urlsetup' style='display:none')
                 p
                     b <span id='urlstep' />&nbsp;
                     | Specify the URL to use for reporting values.
@@ -790,8 +770,7 @@ body
                         option(value='wss') wss://
                         option(value='tcp') tcp://
                     input(id='cburl' style='width:300px' maxlength='91')
-
-            div(id='formatsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='formatsetup' style='display:none')
                 p
                     b <span id='formatstep' />&nbsp;
                     | Specify the type of request and data format to be used:
@@ -845,8 +824,7 @@ body
                             br
                             input(type="radio" name="enc" id="Yocto-API")
                             | Yocto-API
-
-            div(id='authsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='authsetup' style='display:none')
                 p
                     b <span id='authstep' />&nbsp;
                     | Specify the Type of security you want to use:&nbsp;
@@ -867,8 +845,7 @@ body
                         td Password:&nbsp;
                         td
                             input(id='cbpass' type='password')
-
-            div(id='timingsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='timingsetup' style='display:none')
                 p
                     b <span id='timingstep' />&nbsp;
                     | Setup the desired HTTP callback schedule:
@@ -917,48 +894,29 @@ body
                                 option(value="m") min
                                 option(value="h") hours
                             | &nbsp; when there is something new
-
-            div(id='testsetup' style='width:550px;text-align:justify;display:none')
+            div.editCBSection(id='testsetup' style='display:none')
                 p
-                    b
-                    |
-                table(width="100%")
-                    tr
-                        td
-                            b <span id='teststep' />&nbsp;
-                        td
-                            | Press on the <b>Test</b> button to check your parameters.
-                        td(style='text-align:right;')
-                            a(href='javascript:void(0)' onclick="refreshLogs(1);return false;" class="button") Test
-                    tr
-                        td
-                        td(style='text-align:left;')
-                            | Output of last run:
-                        td(style='text-align:right;')
-                            a(href='javascript:void(0)' onclick="refreshLogs(0);return false;" class="button") Refresh
-                    tr
-                        td
-                        td(colspan=2)
-                            input#logidx(style='display:none;' value=cbdata.idx)
-                            iframe#cbLogs(style='width:100%;height:100px;')
-
-            div(id='oksetup' style='width:550px;text-align:justify;display:none')
+                    b <span id='teststep' />&nbsp;
+                    | Press on the <b>Test</b> button to check your parameters.
+                div.editCBTest
+                    a(href='javascript:void(0)' onclick="refreshLogs(1);return false;" class="button") Test
+                    p Output of last run:
+                    input#logidx(style='display:none;' value=cbdata.idx)
+                    iframe#cbLogs(style='width:100%;height:100px;')
+                    a#refreshBtn(href='javascript:void(0)' onclick="refreshLogs(0);return false;" class="button") Refresh
+            div.editCBSection(id='oksetup' style='display:none')
                 p
                     b <span id='okstep' />&nbsp;
                     | When everything is good, press on the <b>Save</b> button below.
-                p
+            div#editCBaction
+                button.dangerousButton(onclick="deleteCallback();") Delete callback
+                span
                     input#paused(type='checkbox')
                     | &nbsp; disable this callback temporarily
-                table(width="100%")
-                    tr
-                        td(style='text-align:left;')
-                            a(href='#' onclick="deleteCallback();" class="button") Delete callback
-                        td(style='text-align:right;')
-                            a(href='#' onclick="save();" class="button") Save
-                            | &nbsp; &nbsp;
-                            a(href='#' onclick="revertCallbackParams();" class="button") Revert
-
+                span.button_inline
+                    button(onclick="save();" class="button") Save
+                    button(onclick="revertCallbackParams();" class="button") Cancel
+        include footer
         script.
             preconfigureUI();
-    span(id='release')
-        include version.pug
+

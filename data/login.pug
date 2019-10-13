@@ -1,46 +1,10 @@
 doctype html
 head
-    link(rel='stylesheet', href='/style.css')
-    style.
-        table.border {
-            border-collapse: collapse;
-        }
-
-        table.border th {
-            border: 1px solid black;
-            padding: 4px 0 4px 0;
-            background-color: #eee;
-        }
-
-        table.border td {
-            border: 1px solid black;
-            padding: 4px 0 4px 0;
-        }
-
-        a.button {
-            display: inline-block;
-            text-decoration: none;
-            color: black;
-            padding: 1px 4px 2px 4px;
-            border: 1px solid gray;
-            border-radius: 4px;
-            background: #eee;
-            font-size: 12px;
-        }
-
-        #loginPanel {
-            text-align: center;
-            display: inline-block;
-        }
-
-
-
+    include style
 body
     include banner.pug
     div#maincontent
-        - var firstLogin = YSubdomain.IsFirstLogin()
-        - var subdomains = YSubdomain.GetSubdomainsFor(FORM.username, FORM.userpass)
-        form(method='POST' name='loginForm' action='/')
+        form(method='POST' name='loginForm' action='/login')
             script.
                 function formInput(name)
                 {
@@ -51,20 +15,8 @@ body
                     window.document.forms["loginForm"].submit();
                     return false;
                 }
-            input(name='action' style='display:none')
-            if subdomains.length > 0
-                include login_info
-                input(name='username' value=FORM.username style='display:none')
-                input(name='userpass' value=FORM.userpass style = 'display:none')
-            else
-                div(id='loginPanel')
+            div(id='loginPanel')
                 script.
-                    function chkconf()
-                    {
-                        if (formInput('confpass').value !== '') {
-                            formInput('confpass').style.color = (formInput('confpass').value !== formInput('userpass').value ? 'red' : 'black');
-                        }
-                    }
                     function hookSubmit(evt)
                     {
                         evt = evt || window.event;
@@ -75,156 +27,20 @@ body
                         }
                         return true;
                     }
-                    window.document.getElementById('loginPanel').innerHTML =
-                        "<h2 id='loginTitle'>Login Required</h2><table>" +
-                        "<tr><td>Username :&nbsp;</td><td><input name='username' onkeypress='return hookSubmit(event);'></td></tr>" +
-                        "<tr><td>Password :&nbsp;</td><td><input name='userpass' onkeypress='return hookSubmit(event);' type='password'></td></tr>" +
-                        "<tr id='confirm' style='display:none'><td>Password (again) :&nbsp;</td><td><input name='confpass' onkeypress='return hookSubmit(event);' onkeyup='chkconf();' type='password'></td></tr>" +
-                        "</table><p style='text-align:right;' id='loginButton'>" +
-                        "<a class='button' style='font-size:16px;' href='#' onclick='formSubmit()'>Login</a>";
-            script
-                | formInput('username').value = '#{FORM.username}';
-                | formInput('userpass').value = '#{FORM.userpass}';
-                | formInput('username').focus();
-            //- First login (no subdomain defined yet)
-            if firstLogin
-                script.
-                    document.getElementById('confirm').style.display = '';
-                    document.getElementById('loginTitle').innerHTML = '1. Define the "administrator" credentials';
-                    document.getElementById('loginButton').style.display = 'none';
-            //- Available subdomain list
-            div(style='text-align:center;')
-                if YSubdomain.IsAdmin(FORM.username, FORM.userpass)
-                    span(style='display:inline-block;')
-                        if firstLogin
-                            p
-                                h2 2. Add your first subdomain
-                        p(style='text-align:justify;')
-                            | A subdomain is a jonction point between a YoctoHub or VirtualHub running a WebSocket callback,
-                            | and a Web console or other Yoctopuce API application that requires interactive access to this hub.
-                if subdomains.length > 0
-                    include connect.pug
-                    script.
-                        function openSubdomain(name)
-                        {
-                            window.document.forms["loginForm"].action = name + '/';
-                            formSubmit();
-                            return false;
-                        }
+                h2#loginTitle Login Required
+                table
+                    tr
+                        td
+                            label(for='username') Username:
+                        td
+                            input#username.form-control(name='username')
+                    tr
+                        td
+                            label(for='pw') Password:
+                        td
+                            input#pw.form-control(type='password' name='password')
 
-                        function getAPIClientlable(subdom)
-                        {
-                            if (!subdom.client)
-                                return "<a href='#' class='button' onclick=\"connectToSubdomain('" + subdom.name + "');\">connect</a>";
-                            else
-                                return subdom.client;
-                        }
-
-                        function redrawTable(subdomains)
-                        {
-                            let table = document.getElementById('allsubdomains');
-                            for (let i = 0; i < subdomains.length; i++) {
-                                let subdom = subdomains[i];
-                                let tr = document.getElementById(subdom.name);
-                                if (tr) {
-                                    tr.cells[0].innerHTML = "<b>" + subdom.name + "</b";
-                                    tr.cells[1].innerHTML = subdom.netname;
-                                    tr.cells[2].innerHTML = getAPIClientlable(subdom);
-                                    tr.cells[3].innerHTML = "<a href='#' class='button' onclick=\"openSubdomain('" + subdom.name + "');\">open</a>";
-                                } else {
-                                    let newRow = table.insertRow(-1);
-                                    let newChild = document.createElement('td');
-                                    newChild.innerHTML = "<b>" + subdom.name + "</b";
-                                    newRow.appendChild(newChild); // The first cell
-                                    let remote = document.createElement('td');
-                                    remote.innerHTML = subdom.netname;
-                                    newRow.appendChild(remote); // The second cell
-                                    let api = document.createElement('td');
-                                    api.innerHTML = getAPIClientlable(subdom, api);
-                                    newRow.appendChild(api);
-                                    let action = document.createElement('td');
-                                    action.innerHTML = "<a href='#' class='button' onclick=\"openSubdomain('" + subdom.name + "');\">open</a>";
-                                    newRow.appendChild(action);
-                                    newRow.id = subdom.name;
-                                }
-                            }
-                        }
-
-                        function refreshSubDomain()
-                        {
-                            var xhttp = new XMLHttpRequest();
-                            xhttp.onreadystatechange = function () {
-                                if (this.readyState === 4 && this.status === 200) {
-                                    redrawTable(JSON.parse(this.responseText));
-                                }
-                            };
-                            xhttp.open("GET", "ajax.json?username=#{FORM.username}&userpass=#{FORM.userpass}", true);
-                            xhttp.send();
-                        }
-                        window.SubdomainReloadTimeout = setInterval(refreshSubDomain, 5000);
-
-                    h2 Subdomains available for #{FORM.username}
-                    span(style='display:inline-block;')
-                        table#allsubdomains(style='width:600px;' class='border')
-                            tr
-                                th Subdomain
-                                th Remote hub
-                                th API client
-                                th details
-                            each domname in subdomains
-                                tr(id=domname)
-                                    - var subdom = YSubdomain.GetSubdomain(domname);
-                                    td <b>#{domname}</b>
-                                    td #{subdom.netname}
-                                    if !subdom.yapi
-                                        td (hub offline)
-                                    else if !subdom.client
-                                        td
-                                            a(href='#' class='button' onclick="connectToSubdomain('" + domname + "');") connect
-                                    else
-                                        td subdom.client
-                                    td
-                                        a(href='#' class='button' onclick="openSubdomain('" + domname + "');") open
-                if YSubdomain.IsAdmin(FORM.username, FORM.userpass)
-                    script.
-                        function prepAddSubdomain()
-                        {
-                            document.getElementById('addButton').style.display = 'none';
-                            document.getElementById('addFields').style.display = '';
-                            return false;
-                        }
-                        function addSubdomain()
-                        {
-                            formInput('action').value = '+' + document.getElementById('addname').value + '|' + document.getElementById('addpass').value
-                            formSubmit();
-                            return false;
-                        }
-
-
-                    br
-                    span(style='display:inline-block;')
-                        table(style='width:600px;' class='border')
-                            tr
-                                td(colspan=2 style='border:0;text-align:right;padding-top:10px;')
-                                    a#addButton(href='#' class='button' onclick="prepAddSubdomain();") add subdomain
-                            tr#addFields(style='display:none;')
-                                td(style='border:0; vertical-align:top; padding-top: 8px;') New subdomain:
-                                td(style='border:0;' colspan=3)
-                                    table(style='width:100%;border-collapse:collapse;')
-                                        tr
-                                            td(style='border:0; text-align:left;') Subdomain name:
-                                            td(style='border:0; text-align:left;')
-                                                input(id='addname' size=30)
-                                        tr
-                                            td(style='border:0; text-align:left;') Hub secret key:
-                                            td(style='border:0; text-align:left;')
-                                                input(id='addpass' size=30 type='password')
-                                        tr
-                                            td(style='border:0;') &nbsp;
-                                            td(style='border:0; text-align:right;')
-                                                a(href='#' onclick="addSubdomain();" class="button") create
-                    if firstLogin
-                        script.
-                            prepAddSubdomain();
-    span(id='release')
-        include version.pug
+                button#loginbtn(type='submit' onclick='formSubmit()') Login
+            script.
+                window.document.forms["loginForm"]['username'].focus();
+        include footer.pug

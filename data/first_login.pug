@@ -1,0 +1,116 @@
+doctype html
+head
+    include style
+body
+    include banner.pug
+    form(method='POST' name='loginForm')
+        script.
+
+            function formInput(name)
+            {
+                return window.document.forms["loginForm"][name];
+            }
+            function formSubmit()
+            {
+                window.document.forms["loginForm"].submit();
+                return false;
+            }
+        div#maincontent
+            - var firstLogin = YSubdomain.IsFirstLogin()
+            input(name='action' style='display:none')
+            script.
+                function chkconf()
+                {
+                    var passok = false;
+                    var password = document.getElementById("password");
+                    var confpass = document.getElementById("confpass");
+                    if (password.value !== '') {
+                        passok = password.value === confpass.value;
+                        confpass.style.color = (passok ? 'black' : 'red');
+                    }
+                    var nextbutton = document.getElementById("nextbtn");
+                    nextbutton.disabled = (document.getElementById("username").value === '' || !passok);
+                }
+                function hookSubmit(evt)
+                {
+                    evt = evt || window.event;
+                    var charCode = evt.which || evt.keyCode;
+                    if (charCode === 13) {
+                        formSubmit();
+                        return false;
+                    }
+                    return true;
+                }
+                function set_step(int_no)
+                {
+                    var nextbutton = document.getElementById("nextbtn");
+                    var section2 = document.getElementById("section2");
+                    if (int_no === 2) {
+                        nextbutton.style.display = "none";
+                        section2.style.display = "";
+                    } else if (int_no === 1) {
+                        nextbutton.style.display = "";
+                        section2.style.display = "none";
+                    }
+                }
+
+                function step1()
+                {
+                    set_step(1);
+                }
+
+                function step2()
+                {
+                    set_step(2);
+                }
+
+                function addSubdomain()
+                {
+                    formInput('action').value = '+' + document.getElementById('addname').value + '|' + document.getElementById('addpass').value
+                    formSubmit();
+                    return false;
+                }
+
+
+            h2 Installation Wizzard
+            div.section
+                h3 1. Define the "administrator" credentials
+                table.centerItem
+                    tr
+                        td
+                            label(for='username') Username:
+                        td
+                            input#username.form-control(name='username' onkeypress='return hookSubmit(event);')
+                    tr
+                        td
+                            label(for='password') Password:
+                        td
+                            input#password.form-control(type='password' name='password' onkeypress='return hookSubmit(event);')
+                    tr
+                        td
+                            label(for='confpass') Password (again):
+                        td
+                            input#confpass.form-control(type='password' name='confpass' onkeypress='return hookSubmit(event);' onkeyup='chkconf();')
+                button#nextbtn.centerItem(onclick='step2()' class="button" type="button" disabled=true) Next
+
+            div#section2.section(style='display:none;')
+                h3 2. Add your first subdomain
+                p(style='text-align:justify;')
+                    | A subdomain is a jonction point between a YoctoHub or VirtualHub running a WebSocket callback,
+                    | and a Web console or other Yoctopuce API application that requires interactive access to this hub.
+                table.centerItem#newsubdomain(style='border:0;border-collapse:collapse;')
+                    tr
+                        td Subdomain name:
+                        td
+                            input(id='addname' size=30)
+                    tr
+                        td Hub secret key:
+                        td
+                            input(id='addpass' size=30 type='password')
+                    tr
+                        td &nbsp;
+                        td
+                            span.button_inline
+                                button(onclick="addSubdomain();" class="button") Add
+                                button(onclick="step1();" class="button" type="button") Cancel
+            include footer
