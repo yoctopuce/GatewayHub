@@ -1,0 +1,51 @@
+doctype html
+head
+    title #{subdom.name} Gateway Hub
+head
+    include style
+body
+    include banner.pug
+    include login_info.pug
+    script.
+        function GetWindowHeight()
+        {
+            var height = (document.body ? document.body.clientHeight : 350);
+            if (typeof (window.innerHeight) != "undefined" && window.innerHeight > 0) {
+                height = window.innerHeight;
+            } else if (typeof (document.documentElement.clientHeight) != "undefined" && document.documentElement.clientHeight > 0) {
+                height = document.documentElement.clientHeight;
+            }
+            if (height < 100) {
+                height = 350;
+            }
+            return height;
+        }
+
+        function setRemoteSize()
+        {
+            var md = document.getElementById('remoteDiv');
+            var winH = GetWindowHeight();
+            var int_height = winH*3/4;
+            if (md) {
+                var currh = parseInt(md.style.height);
+                if (isNaN(currh) || currh < int_height) {
+                    md.style.height = int_height + 'px';
+                }
+            }
+        }
+
+
+
+    form(method='POST' name='loginForm' style='display:none;')
+        input(name='action')
+        input(name='idx')
+
+    div#maincontent
+        h2 remote on #{subdom.name} subdomain
+        div#remoteDiv
+            a(href="/"+subdom.name+"/redirect")
+                img#fullScreen(src="/fullscreen.png" alt="Switch to fullscreen")
+            iframe#remoteFrame(src="/"+subdom.name+"/redirect")
+        include footer
+    script.
+        setRemoteSize()

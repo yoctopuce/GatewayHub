@@ -17,6 +17,7 @@ class YSubdomain
         this.auth = auth;
         this.cback = [];
         this.hubserial = '';
+        this.hubfirmware = "";
         this.hubtype = '';
         this.hubip = '';
         this.netname = '';
@@ -89,6 +90,7 @@ class YSubdomain
             }
         }
         this.hubserial = '';
+        this.hubfirmware = "";
         this.hubtype = '';
         this.hubip = '';
         this.netname = '';
@@ -184,6 +186,7 @@ class YSubdomain
                 let module = await network.get_module();
                 let fcount = await module.functionCount();
                 this.hubserial = await module.get_serialNumber();
+                this.hubfirmware = await module.get_firmwareRelease();
                 this.hubtype = await module.get_productName();
                 this.hubip = remoteAddress;
                 for (let f = 0; f < fcount; f++) {
@@ -359,6 +362,15 @@ class YSubdomain
         }
     }
 
+    getRemoteLink()
+    {
+        let hubfirmware = parseInt(this.hubfirmware);
+        if (hubfirmware > 0 && hubfirmware < 37707) {
+            return "/" + this.name + "/redirect";
+        } else {
+            return "/" + this.name + "/remote";
+        }
+    }
 }
 
 class YSubdomainManager
@@ -484,6 +496,50 @@ class YSubdomainManager
                 };
                 res.render('subdomain', {
                     "FORM": req.body,
+                    "USER": {username: req.user.user, userpass: req.user.pass},
+                    "YSubdomain": this,
+                    "Server": req.hostname + ':' + this.https_port,
+                    "WS_Server": WS_Server,
+                    "subdom": subdom
+                });
+            } else {
+                res.redirect('/');
+            }
+        });
+        this.app.all('/' + name + '/remote', (req, res, next) => {
+            if (!req.isAuthenticated()) {
+                return res.redirect('/login');
+            }
+
+            if (subdom.isAuthorized(req.user.user, req.user.pass)) {
+                let WS_Server = {
+                    'hostname': req.hostname,
+                    'wsport': this.http_port,
+                    'wssport': this.https_port
+                };
+                res.render('remote', {
+                    "USER": {username: req.user.user, userpass: req.user.pass},
+                    "YSubdomain": this,
+                    "Server": req.hostname + ':' + this.https_port,
+                    "WS_Server": WS_Server,
+                    "subdom": subdom
+                });
+            } else {
+                res.redirect('/');
+            }
+        });
+        this.app.all('/' + name + '/redirect', (req, res, next) => {
+            if (!req.isAuthenticated()) {
+                return res.redirect('/login');
+            }
+
+            if (subdom.isAuthorized(req.user.user, req.user.pass)) {
+                let WS_Server = {
+                    'hostname': req.hostname,
+                    'wsport': this.http_port,
+                    'wssport': this.https_port
+                };
+                res.render('redirect', {
                     "USER": {username: req.user.user, userpass: req.user.pass},
                     "YSubdomain": this,
                     "Server": req.hostname + ':' + this.https_port,
@@ -620,6 +676,15 @@ class YSubdomainManager
     GetSubdomain(name)
     {
         return this.list[name];
+    }
+
+    GetRemoteLink(name)
+    {
+        let subdom = this.list[name];
+        if (!subdom) {
+            return "";
+        }
+        return subdom.getRemoteLink();
     }
 
     Obfuscate(str)

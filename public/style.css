@@ -268,3 +268,22 @@ h3.dangerous {
     text-align: center;
     display: inline-block;
 }
+
+#remoteDiv {
+    position: relative;
+    height: 600px;
+    width: 100%;
+}
+
+#remoteFrame{
+    border: 1px solid gray;
+    border-radius: 4px;
+    height: 100%;
+    width: 100%;
+}
+
+#fullScreen {
+    position: absolute;
+    top:4px;
+    right: 4px;
+}

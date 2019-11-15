@@ -106,14 +106,12 @@ app.get('/login', (req, res, next) => {
     if (subdomainsManger.IsFirstLogin()) {
         return res.redirect("/firstlogin");
     } else {
-
         res.render('login', {
             "FORM": req.body,
             "Server": req.hostname + ':' + https_port
         });
     }
 });
-
 
 app.post('/login',
     passport.authenticate("local-login", {failureRedirect: '/login'}),
@@ -191,7 +189,8 @@ app.get('/ajax.json', isLoggedIn, (req, res) => {
             client_val = "(hub offline)";
         else
             client_val = subdomain.client;
-        outlist[i] = {name: subdomain.name, netname: subdomain.netname, client: client_val};
+        let link = subdomain.getRemoteLink();
+        outlist[i] = {name: subdomain.name, netname: subdomain.netname, client: client_val, remotelink: link};
     }
     res.json(outlist);
 });

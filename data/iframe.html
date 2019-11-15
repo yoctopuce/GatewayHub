@@ -5,7 +5,7 @@
 "use strict";
 
 var rootwin = window;
-while (rootwin != rootwin.parent) {
+while (rootwin.HUB_ROOT_WIN !== "HUB_ROOT_WIN" && rootwin != rootwin.parent) {
   rootwin = rootwin.parent;
 }
 function jsHTTP(str_key) {

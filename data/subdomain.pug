@@ -115,7 +115,7 @@ body
             }
 
         include connect.pug
-        h2 #{subdom.name} Subdomain
+        h2 #{subdom.name} subdomain
         // div(style="height:40px")
         div.section
             h3 Connected hub
@@ -131,8 +131,8 @@ body
                         td.settingsValue (hub offline)
                     else if !subdom.client
                         td.settingsValue
-                            | online
-                            button(onclick="connectToSubdomain('" + subdom.name + "');" class="button") connect
+                            | online &nbsp;
+                            a(href="" + subdom.getRemoteLink() class='button') connect
                     else
                         td connected to #{subdom.client}
                 tr
