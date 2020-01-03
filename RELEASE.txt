@@ -1,6 +1,4 @@
-GatewayHub v1.10.39031
+GatewayHub v1.10.39049
 
-- Improve UI for remote connection to hub
-- Improve Remote connection to YoctoHub and VirtualHub interface
-- Improve command line argument parsing
-- Add error message if no http certificate are found
+- Update README.md
+- Minor fix

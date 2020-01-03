@@ -99,7 +99,7 @@ body
                             td (hub offline)
                         else if !subdom.client
                             td
-                                a(href="#{link}" class='button') connect
+                                a(href="" + subdom.getRemoteLink() class='button') connect
                         else
                             td subdom.client
                         td

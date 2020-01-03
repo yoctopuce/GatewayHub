@@ -14,8 +14,46 @@ For more details, see [this article](https://www.yoctopuce.com/EN/article/a-gate
 It can also be used to dispatch callbacks to multiple third-party
 services, as described in [this other article](https://www.yoctopuce.com/EN/article/a-gateway-to-forward-yoctohub-callbacks)
 
-## Installation
+## Quick Start
 
+1. `sudo npm install -g gatewayhub`
+2. `openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem` 
+3. `gatewayhub`
+4. Open <https://localhost:44443>
+
+
+## Npm Installation 
+
+You can install the Gateway Hub directly from [npmjs.org](https://www.npmjs.com/package/gatewayhub). 
+
+`sudo npm install -g gatewayhub`
+
+The you can start the Gateway Hub with the command `gatewayhub`
+
+#### Command-line options
+
+| Options      | Description          | Default Value | 
+|--------------|----------------------|---------------|
+| --config     | The config file path |  gateway.conf |
+| --http_port  | The http port        |         44080 | 
+| --https_port | The https port       |         44443 | 
+| --key_file   | The private key      |       key.pem | 
+| --cert_file  | The SSL certificate  |      cert.pem | 
+
+
+## SSL certificates 
+ 
+In order to enable the secure interface https, you will also have to put 
+in the same directory the certificates to be used: two files named cert.pem 
+and key.pem, which are usually provided by our SSL certificate provider or 
+hosting provider. In case you just want to make a test, you can also use 
+self-signed certificates created using OpenSSL, by typing the following 
+command (on a single line): 
+
+`openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem` 
+
+
+## Manual Installation 
 This small gateway is based on standard Node.js solutions to offer a 
 simple (http://) and secure (https://) web service, with simple (ws://) 
 and secure (wss://) WebSocket service. 
@@ -32,20 +70,11 @@ Copy the gateway files on your Node.js server, and run the following
 command to automatically install all the dependencies: 
 
 `npm install`
- 
-In order to enable the secure interface https, you will also have to put 
-in the same directory the certificates to be used: two files named cert.pem 
-and key.pem, which are usually provided by our SSL certificate provider or 
-hosting provider. In case you just want to make a test, you can also use 
-self-signed certificates created using OpenSSL, by typing the following 
-command (on a single line): 
-
-`openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem` 
 
 You then only have to manually run the application, indicating the ports 
 to be used respectively for the http and https protocols: 
 
-`node gateway.js 44080 44443`
+`node gateway.js --http_port 44080 --https_port 44443`
 
 For your application to run and run again automatically, you can use the 
 forever package, or another solution recommended by your provider. 
