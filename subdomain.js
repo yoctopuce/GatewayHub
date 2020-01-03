@@ -5,8 +5,6 @@ const fs = require('fs');
 const crypto = require('crypto');
 const YCallback = require('./callback.js');
 
-// Configuration file
-const configfile = path.join(__dirname, 'gateway.conf');
 
 class YSubdomain
 {
@@ -375,7 +373,7 @@ class YSubdomain
 
 class YSubdomainManager
 {
-    constructor(app, http_port, https_port)
+    constructor(app, config_file, http_port, https_port)
     {
         this.app = app;
         this.http_port = http_port;
@@ -383,6 +381,7 @@ class YSubdomainManager
         this.list = {};
         let webapp = path.join(__dirname, 'data/webapp.html');
         this.WebAppSize = fs.statSync(webapp).size;
+        this.configfile = config_file;
     }
 
 
@@ -740,7 +739,7 @@ class YSubdomainManager
             }
             conf.push({name: subdom.name, pass: this.Obfuscate(subdom.pass), auth: auth, outcb: outcb});
         }
-        fs.writeFileSync(configfile, JSON.stringify(conf, null, 2), 'utf8');
+        fs.writeFileSync(this.configfile, JSON.stringify(conf, null, 2), 'utf8');
     }
 
     getNewUserID()
@@ -753,13 +752,13 @@ class YSubdomainManager
     //
     LoadConfig()
     {
-        if (!fs.existsSync(configfile)) {
-            console.log('No config file (' + configfile + ')');
+        if (!fs.existsSync(this.configfile)) {
+            console.log('No config file (' + this.configfile + ')');
             return false;
         }
         let all_ids = [];
         try {
-            let conf = JSON.parse(fs.readFileSync(configfile, 'utf8'));
+            let conf = JSON.parse(fs.readFileSync(this.configfile, 'utf8'));
             for (let i = 0; i < conf.length; i++) {
                 conf[i].pass = this.Reveal(conf[i].pass);
                 for (let j = 0; j < conf[i].auth.length; j++) {
@@ -781,7 +780,7 @@ class YSubdomainManager
                 this.Create(conf[i].name, conf[i].pass, conf[i].auth, conf[i].outcb);
             }
         } catch (e) {
-            console.log('Cannot load ' + configfile);
+            console.log('Cannot load ' + this.configfile);
             return false;
         }
         return true;

@@ -1,19 +1,6 @@
-GatewayHub v1.10.38155
+GatewayHub v1.10.39031
 
-(GatewayHub)- Improve UI for remote connection to hub
-(GatewayHub)- Improve Remote connection to YoctoHub and VirtualHub interface
-(Libs)- Improve every class description (add sample product name)
-(Libs)- Cleanup comments in DigitalIO, commit first version of LabView definition file
-(Libs)- Generate new classes using u31 for unsigned ints
-(Libs)- cleanup DigitalIO comments
-(Misc)- labview generator:closing tags fix
-(Misc)- labview generator:added  extra help tag
-(Misc)- labview generator:added  default  attribute
-(Misc)- labview library:first VIs generation from yoctolib file
-(Misc)- labview library:checked examples after first VIs generation from yoctolib file
-(Misc)- labview library:icone
-(Misc)- labview  parser:trying to improve VI BD style.
-(Misc)- Fix Application that was not started correctly
-(Misc)- Set AssemblyFileVersion to all CS.Net assembly
-(Misc)- labview/cs:fix few details
-(Misc)- dot net proxy:added ref keeper class
+- Improve UI for remote connection to hub
+- Improve Remote connection to YoctoHub and VirtualHub interface
+- Improve command line argument parsing
+- Add error message if no http certificate are found

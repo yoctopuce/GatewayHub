@@ -1,7 +1,30 @@
 {
   "name": "gatewayhub",
   "author": "Yoctopuce",
+  "version": "1.0.39031",
   "description": "Yoctopuce GatewayHub",
+  "keywords": [
+    "Yoctopuce",
+    "GatewayHub"
+  ],
+  "homepage": "https://www.yoctopuce.com",
+  "bugs": "https://github.com/yoctopuce/GatewayHub/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yoctopuce/GatewayHub"
+  },
+  "license": "SEE LICENSE IN README.md",
+  "files": [
+    "data/*",
+    "public/*",
+    "*.js",
+    "README.md"
+  ],
+  "bin": "./gateway.js",
+  "main": "gateway.js",
+  "engines": {
+    "node": ">=8.10"
+  },
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
@@ -11,11 +34,12 @@
     "https": "^1.0.0",
     "memorystore": "^1.6.1",
     "mqtt": "^2.18.8",
-    "passport": "^0.4.0",
+    "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "pug": "^2.0.0-rc.4",
     "url": "^0.11.0",
     "ws": "^6.2.1",
-    "yoctolib-es2017": "^1.10.33736"
+    "yargs": "^15.1.0",
+    "yoctolib-es2017": "^1.10.39003"
   }
 }

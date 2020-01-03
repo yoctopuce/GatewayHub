@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 
 require('yoctolib-es2017/yocto_api.js');
@@ -15,23 +16,59 @@ const session = require('express-session');
 const MemoryStore = require('memorystore')(session);
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+
+
+
+
+const argv = require('yargs')
+    .usage('Usage: $0 [options]')
+    .example('$0 -c config.conf --http_port 44080 --https_port 44443', '')
+    .alias('c', 'config')
+    .describe('c', 'A config file')
+    .help('h')
+    .alias('h', 'help')
+    .default('c', 'gateway.conf')
+    .default('http_port', 44080)
+    .default('https_port', 44443)
+    .default('key_file', 'key.pem')
+    .default('cert_file', 'cert.pem')
+    .argv;
+
+if (argv.version) {
+    console.log("gatewayhub v1.0.39031");
+    process.exit(0);
+}
+
 // Setup ports
-const http_port = (process.argv.length < 3 ? 44080 : parseInt(process.argv[2]));
-const https_port = (process.argv.length < 4 ? 44443 : parseInt(process.argv[3]));
+const http_port = (argv._.length < 1 ? argv.http_port : parseInt(argv._[0]));
+const https_port = (argv._.length < 2 ? argv.https_port : parseInt(argv._[1]));
+
 
 const subdomains = require('./subdomain.js');
-const subdomainsManger = new subdomains.YSubdomainManager(app, http_port, https_port);
+const subdomainsManger = new subdomains.YSubdomainManager(app, argv.c, http_port, https_port);
 // noinspection JSIgnoredPromiseFromCall
 YAPI.LogUnhandledPromiseRejections();
 
 // Instantiate a Web server with both HTTP/WS and HTTPS/WSS support
-const options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
-};
 const httpServer = http.createServer(app);
 // noinspection JSUnusedLocalSymbols
 const wsServer = express_ws(app, httpServer);
+let use_https = false;
+if (!fs.existsSync(argv.key_file) || !fs.existsSync(argv.cert_file)) {
+    console.log("Warning: No key.pem and cert.pem file found\n");
+    console.log("In order to enable the secure interface https, you will also have to put");
+    console.log("in the same directory the certificates to be used: two files named cert.pem");
+    console.log("and key.pem, which are usually provided by our SSL certificate provider or");
+    console.log("hosting provider. In case you just want to make a test, you can also use");
+    console.log("self-signed certificates created using OpenSSL, by typing the following");
+    console.log("command (on a single line):");
+    console.log("openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem");
+    process.exit(1);
+}
+const options = {
+    key: fs.readFileSync(argv.key_file),
+    cert: fs.readFileSync(argv.cert_file)
+};
 const httpsServer = https.createServer(options, app);
 // noinspection JSUnusedLocalSymbols
 const wssServer = express_ws(app, httpsServer);
@@ -201,7 +238,7 @@ subdomainsManger.LoadConfig(app, http_port, https_port);
 
 // Start web server
 httpServer.listen(http_port, function () {
-    console.log('HTTP Server running on port', https_port);
+    console.log('HTTP Server running on port', http_port);
 });
 httpsServer.listen(https_port, function () {
     console.log('HTTPS Server running on port', https_port);
