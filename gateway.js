@@ -35,7 +35,7 @@ const argv = require('yargs')
     .argv;
 
 if (argv.version) {
-    console.log("gatewayhub v1.0.39049");
+    console.log("gatewayhub v1.0.40924");
     process.exit(0);
 }
 
