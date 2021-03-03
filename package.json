@@ -1,7 +1,7 @@
 {
   "name": "gatewayhub",
   "author": "Yoctopuce",
-  "version": "1.0.40924",
+  "version": "1.0.12345",
   "description": "Yoctopuce GatewayHub",
   "keywords": [
     "Yoctopuce",
@@ -36,7 +36,7 @@
     "mqtt": "^2.18.8",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
-    "pug": "^2.0.0-rc.4",
+    "pug": "^3.0.2",
     "url": "^0.11.0",
     "ws": "^6.2.1",
     "yargs": "^15.1.0",
