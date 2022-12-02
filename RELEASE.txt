@@ -1,3 +1,3 @@
-GatewayHub v1.10.44086
+GatewayHub v1.10.52094
 
-- Update npm dependency (security fix)
+- Update embedded classes
